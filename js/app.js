@@ -112,7 +112,6 @@
 
       // ボタン
       this.btnCheck = document.getElementById('btnCheck');
-      this.btnPass = document.getElementById('btnPass');
       this.feedbackBox = document.getElementById('feedbackBox');
 
       // 成長比較ダッシュボード要素
@@ -572,12 +571,6 @@
       });
 
       this.btnCheck.addEventListener('click', () => this.checkAnswerNow());
-
-      this.btnPass.addEventListener('click', () => {
-        if (confirm('この問題をパスして次の問題に進みますか？')) {
-          this.nextProblem();
-        }
-      });
 
       // スマート保存ボタンクリック時
       this.btnSync.addEventListener('click', async () => {
