@@ -1,5 +1,5 @@
 /**
- * 学習時間トラッカー ＆ 放置検知 ＆ ローカルストレージ管理
+ * 熱血1000本ノック トラッカー ＆ 放置検知 ＆ 成績集計
  * UMD形式（ブラウザ直接読み込み・Node.js両対応）
  */
 (function (root, factory) {
@@ -15,11 +15,12 @@
 
   const STORAGE_KEY_SESSION = 'keisan_session_active_v1';
   const STORAGE_KEY_LOGS = 'keisan_problem_logs_v1';
-  const IDLE_LIMIT_SECONDS = 60; // 60秒間無操作で放置と判定して一時停止
+  const IDLE_LIMIT_SECONDS = 60; // 60秒間無操作で放置と判定
+  const TARGET_KNOCKS = 1000;    // 1000本ノック！
 
   class StudyTracker {
     constructor(options = {}) {
-      this.targetSeconds = options.targetSeconds || 30 * 60; // 30分 = 1800秒
+      this.targetKnocks = options.targetKnocks || TARGET_KNOCKS;
       this.onTick = options.onTick || (() => {});
       this.onIdleStateChange = options.onIdleStateChange || (() => {});
       this.onTargetReached = options.onTargetReached || (() => {});
@@ -62,7 +63,6 @@
           const todayStr = new Date().toDateString();
           if (data.date === todayStr) {
             this.activeSeconds = data.activeSeconds || 0;
-            this.targetReachedFired = this.activeSeconds >= this.targetSeconds;
           }
         }
       } catch (e) {
@@ -135,15 +135,8 @@
           this.saveSession();
         }
 
-        if (!this.targetReachedFired && this.activeSeconds >= this.targetSeconds) {
-          this.targetReachedFired = true;
-          this.onTargetReached(this.activeSeconds);
-        }
-
         this.onTick({
           activeSeconds: this.activeSeconds,
-          targetSeconds: this.targetSeconds,
-          isIdle: this.isIdle,
           problemSeconds: this.currentProblemActiveSeconds
         });
       }, 1000);
@@ -190,53 +183,48 @@
       });
     }
 
-    recordCorrect(userInfo = {}) {
-      const user = typeof userInfo === 'string'
-        ? { nickname: userInfo, className: '', studentNumber: '' }
-        : (userInfo || {});
-
-      const studentDisplayName = `${user.className ? user.className + ' ' : ''}${user.studentNumber ? user.studentNumber + '番 ' : ''}${user.nickname || '児童'}`;
+    recordSolve(problemData, finalAnswer) {
+      const now = Date.now();
+      const actualSeconds = this.currentProblemActiveSeconds;
 
       const logEntry = {
-        id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        id: 'log_' + now + '_' + Math.random().toString(36).substring(2, 6),
         sessionId: this.sessionId,
         timestamp: new Date().toISOString(),
-        className: user.className || '',
-        studentNumber: user.studentNumber || '',
-        nickname: user.nickname || '未設定',
-        studentName: studentDisplayName,
         problem: {
-          formula: `${this.currentProblemData.frac1.toString()} ${this.currentProblemData.op} ${this.currentProblemData.frac2.toString()}`,
-          op: this.currentProblemData.op,
-          category: this.currentProblemData.category,
-          canReduce: this.currentProblemData.canReduce,
-          hasRegrouping: this.currentProblemData.hasRegrouping,
-          correctAnswer: `${this.currentProblemData.answer.whole > 0 ? this.currentProblemData.answer.whole + 'と' : ''}${this.currentProblemData.answer.num > 0 ? this.currentProblemData.answer.num + '/' + this.currentProblemData.answer.den : '0'}`
+          category: problemData.category,
+          subCategory: problemData.subCategory,
+          formula: problemData.formula,
+          op: problemData.op,
+          correctAnswer: problemData.correctAnswer
         },
-        timeSpentSeconds: this.currentProblemActiveSeconds,
+        userAnswer: finalAnswer,
+        timeSpentSeconds: actualSeconds,
         mistakeCount: this.currentProblemMistakes,
         history: this.currentProblemHistory,
         syncedToSheet: false
       };
 
-      if (typeof localStorage !== 'undefined') {
-        try {
-          const logs = JSON.parse(localStorage.getItem(STORAGE_KEY_LOGS) || '[]');
-          logs.push(logEntry);
-          localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
-        } catch (e) {
-          console.error('Failed to save problem log:', e);
-        }
-      }
-
-      this.saveSession();
+      this.saveProblemLog(logEntry);
       return logEntry;
+    }
+
+    saveProblemLog(logEntry) {
+      if (typeof localStorage === 'undefined') return;
+      try {
+        const logs = this.getAllLogs();
+        logs.push(logEntry);
+        localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+      } catch (e) {
+        console.error('Failed to save log entry:', e);
+      }
     }
 
     getAllLogs() {
       if (typeof localStorage === 'undefined') return [];
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY_LOGS) || '[]');
+        const raw = localStorage.getItem(STORAGE_KEY_LOGS);
+        return raw ? JSON.parse(raw) : [];
       } catch (e) {
         return [];
       }
@@ -260,11 +248,10 @@
       return logs;
     }
 
-    // 「きょう」と「これまで（過去）」の比較データ集計
+    // 「熱血1000本ノック」成績集計＆成長比較
     getStatsComparison(userInfo = null) {
       const todayLogs = this.getTodayLogs(userInfo);
       const pastLogs = this.getPastLogs(userInfo);
-      const allUserLogs = [...pastLogs, ...todayLogs];
 
       const calcStats = (logs) => {
         const count = logs.length;
@@ -285,7 +272,7 @@
       const todayStats = calcStats(todayLogs);
       const pastStats = calcStats(pastLogs);
 
-      // スプレッドシート由来の過去サマリー（別端末での学習履歴など）を反映
+      // スプレッドシート由来の過去サマリーを統合
       if (userInfo && userInfo.summary) {
         const s = userInfo.summary;
         const remoteSolved = Number(s.totalSolved) || 0;
@@ -297,26 +284,24 @@
         }
       }
 
-      // 累計実績の統合
-      const combinedTotalCount = pastStats.count + todayStats.count;
+      // 通算累計ノック完了数
+      const totalKnocksDone = pastStats.count + todayStats.count;
       const combinedTotalMinutes = Math.round((pastStats.totalMinutes + (todayStats.count > 0 ? (todayStats.avgSec * todayStats.count / 60) : 0)) * 10) / 10;
-      const allStats = {
-        count: combinedTotalCount,
-        totalMinutes: combinedTotalMinutes
-      };
 
-      // 今日の学習時間（分）と残り時間（分）
-      const todayMinutes = Math.floor(this.activeSeconds / 60);
-      const remainingSeconds = Math.max(0, this.targetSeconds - this.activeSeconds);
-      const remainingMinutes = Math.ceil(remainingSeconds / 60);
+      // 1000本ノックのカウントダウン＆カウントアップ計算
+      const target = this.targetKnocks;
+      const isCompleted = totalKnocksDone >= target;
+      const remainingKnocks = Math.max(0, target - totalKnocksDone);
+      const extraKnocks = isCompleted ? (totalKnocksDone - target) : 0;
+      const knockProgressPercent = Math.min(100, Math.round((totalKnocksDone / target) * 100));
 
-      // スピード変化（過去の平均秒 - 今日の平均秒: プラスなら短縮して早い！）
+      // スピード変化（スイング速度の短縮差分）
       let speedDiff = null;
       if (todayStats.count > 0 && pastStats.count > 0) {
         speedDiff = pastStats.avgSec - todayStats.avgSec;
       }
 
-      // 正答率変化（今日の正答率 - 過去の正答率）
+      // 打率変化（正答率差分）
       let accDiff = null;
       if (todayStats.count > 0 && pastStats.count > 0) {
         accDiff = todayStats.accuracy - pastStats.accuracy;
@@ -326,12 +311,21 @@
         today: {
           ...todayStats,
           activeSeconds: this.activeSeconds,
-          todayMinutes: todayMinutes,
-          remainingMinutes: remainingMinutes,
-          remainingSeconds: remainingSeconds
+          todayMinutes: Math.floor(this.activeSeconds / 60)
         },
         past: pastStats,
-        all: allStats,
+        all: {
+          count: totalKnocksDone,
+          totalMinutes: combinedTotalMinutes
+        },
+        knocks: {
+          target: target,
+          done: totalKnocksDone,
+          remaining: remainingKnocks,
+          isCompleted: isCompleted,
+          extra: extraKnocks,
+          percent: knockProgressPercent
+        },
         speedDiff: speedDiff,
         accDiff: accDiff
       };

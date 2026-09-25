@@ -173,19 +173,27 @@
       }
     }
 
-    // 📖 スプレッドシートから全児童の名簿データを読み込む
-    async fetchUsersFromSheet() {
+    // 📖 スプレッドシートから全児童の名簿データを読み込む（最大2.5秒タイムアウト保証でフリーズ防止）
+    async fetchUsersFromSheet(timeoutMs = 2500) {
       if (!this.gasUrl) return [];
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+
         const fetchUrl = `${this.gasUrl}${this.gasUrl.includes('?') ? '&' : '?'}action=get_users&t=${Date.now()}`;
-        const res = await fetch(fetchUrl);
+        const res = await fetch(fetchUrl, {
+          signal: controller.signal,
+          mode: 'cors'
+        });
+        clearTimeout(timer);
+
         const data = await res.json();
         if (data.status === 'success' && Array.isArray(data.users)) {
           return data.users;
         }
         return [];
       } catch (err) {
-        console.warn('Failed to fetch users from sheet:', err);
+        console.warn('Failed to fetch users from sheet (timeout or network):', err);
         return [];
       }
     }
