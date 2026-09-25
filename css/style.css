@@ -63,20 +63,19 @@ html, body {
   z-index: 1;
 }
 
-/* 巨人の星 鬼監督 ど迫力背景レイヤー */
+/* 巨人の星 鬼監督 ど迫力背景レイヤー (16:9 全面パノラマ) */
 .kyojin-bg-huge {
   position: absolute;
-  right: 2%;
-  bottom: 0;
-  width: 50%;
-  height: 85%;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: right bottom;
-  opacity: 0.28;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.38;
   pointer-events: none;
   z-index: 1;
-  filter: contrast(1.2) saturate(1.3);
+  filter: contrast(1.15) saturate(1.25);
 }
 
 /* スクリーンシェイク（画面揺れ）アニメーション */
@@ -734,6 +733,7 @@ canvas#scratchCanvas {
 }
 
 /* 劇画モーダル */
+/* 劇画モーダル */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -756,121 +756,195 @@ canvas#scratchCanvas {
   opacity: 1;
 }
 
-.modal-content.comic-modal {
-  background: #ffffff;
-  border: 4px solid var(--border-comic);
-  border-radius: 16px;
-  padding: 24px;
-  width: 90%;
+/* 入部届（巨人の計算）専用モーダル背景 */
+.auth-modal-overlay {
+  background-color: #120703;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  backdrop-filter: none;
+}
+
+/* 巨人の計算 劇画和風カード */
+.modal-card-kyojin {
+  background: #fffdf5;
+  border: 3.5px solid #1a0808;
+  border-radius: 4px;
+  box-shadow: 12px 12px 0px #7b1113, 12px 12px 0px 3.5px #000000;
+  width: 480px;
+  max-width: 92%;
+  padding: 24px 28px 20px;
   text-align: center;
-  box-shadow: 10px 10px 0px #000;
   animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  z-index: 10;
 }
 
-@keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.kyojin-header-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
-.modal-comic-header h2 {
-  font-size: 1.5rem;
+.kyojin-ball-icon {
+  font-size: 1.8rem;
+  color: #a91b0d;
+}
+
+.kyojin-main-title {
+  font-size: 2.2rem;
   font-weight: 900;
-  font-style: italic;
-  color: #dc2626;
-  margin-bottom: 4px;
+  color: #a91b0d;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", serif;
+  letter-spacing: 3px;
+  margin: 0;
+  text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 2px 2px 0 #000;
 }
 
-.modal-comic-header p {
-  font-size: 0.9rem;
+.kyojin-subtitle {
+  font-size: 1.05rem;
   font-weight: bold;
-  color: #64748b;
-  margin-bottom: 16px;
-}
-
-.comic-confirm-box {
-  background: #fef08a;
-  border: 3px solid #ca8a04;
-  border-radius: 10px;
-  padding: 14px;
-  margin: 14px 0;
-  box-shadow: 3px 3px 0 #000;
-}
-
-.confirm-nickname {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #991b1b;
-  margin: 4px 0;
+  color: #881b1b;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", serif;
+  margin-top: 4px;
   letter-spacing: 1px;
 }
 
-.btn-comic {
+.kyojin-divider {
+  border-bottom: 2.5px solid #2b1810;
+  margin: 10px auto 14px;
+  width: 96%;
+}
+
+.kyojin-guide-text {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e1e1e;
+  font-family: serif;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.kyojin-section {
+  margin-bottom: 10px;
+}
+
+.kyojin-section-label {
+  font-size: 0.8rem;
   font-weight: 900;
-  border: 2px solid #000;
-  box-shadow: 3px 3px 0 #000;
-  cursor: pointer;
-  transition: all 0.1s;
-}
-
-.btn-comic:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #000;
-}
-
-.btn-comic:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 #000;
-}
-
-.auth-form-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.auth-form-col {
-  flex: 1;
-  text-align: left;
-}
-
-.auth-form-label {
-  font-size: 0.82rem;
-  font-weight: 900;
-  color: #1e293b;
+  color: #000000;
+  text-align: center;
   margin-bottom: 4px;
   display: block;
 }
 
-.auth-select, .auth-input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 2px solid #334155;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
-  background: white;
+.kyojin-row-classnum {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.kyojin-box-select {
+  background: #ffffff;
+  border: 3px solid #000000;
+  border-radius: 2px;
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-align: center;
+  text-align-last: center;
+  width: 72px;
+  height: 50px;
+  color: #000000;
   outline: none;
-}
-
-.auth-submit-btn {
-  width: 100%;
-  padding: 12px;
-  background: #ea580c;
-  color: white;
-  border-radius: 8px;
-  font-size: 1.15rem;
-  margin-top: 8px;
-}
-
-.btn-link-sub {
-  background: none;
-  border: none;
-  color: #64748b;
-  text-decoration: underline;
-  font-size: 0.82rem;
   cursor: pointer;
-  margin-top: 10px;
-  font-weight: bold;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kyojin-unit-text {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #000000;
+  margin: 0 4px;
+}
+
+.kyojin-row-pass {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.kyojin-box-input {
+  background: #ffffff;
+  border: 3px solid #000000;
+  border-radius: 2px;
+  font-size: 1.4rem;
+  font-weight: 900;
+  text-align: center;
+  width: 175px;
+  height: 44px;
+  color: #000000;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kyojin-box-input.name-input {
+  width: 220px;
+  font-size: 1.05rem;
+  height: 40px;
+  border-color: #ea580c;
+}
+
+.kyojin-player-status {
+  margin: 10px 0 14px;
+  min-height: 26px;
+}
+
+.player-name-badge {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #7f1d1d;
+  background: #fef3c7;
+  border: 1.5px solid #d97706;
+  padding: 3px 12px;
+  border-radius: 4px;
+  display: inline-block;
+  box-shadow: 1px 1px 0 #000;
+}
+
+.kyojin-btn-wrap {
+  margin-top: 6px;
+}
+
+.btn-game-start {
+  background: linear-gradient(180deg, #ea3a16 0%, #c42407 100%);
+  border: 3.5px solid #000000;
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 900;
+  width: 210px;
+  height: 48px;
+  box-shadow: 0 5px 0 #000000;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-game-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #000000;
+  filter: brightness(1.08);
+}
+
+.btn-game-start:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #000000;
 }
 
 /* 1000本完走モーダル */

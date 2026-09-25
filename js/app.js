@@ -187,25 +187,16 @@
       this.btnSync = document.getElementById('btnSync');
       this.btnSyncText = document.getElementById('btnSyncText');
 
-      // 認証モーダル要素
+      // 認証モーダル要素（巨人の計算・提示画像完全再現）
       this.authModal = document.getElementById('authModal');
-      this.authStepSelect = document.getElementById('authStepSelect');
-      this.authStepConfirm = document.getElementById('authStepConfirm');
-      this.authStepRegister = document.getElementById('authStepRegister');
-
       this.authClass = document.getElementById('authClass');
       this.authNumber = document.getElementById('authNumber');
-      this.btnStepNext = document.getElementById('btnStepNext');
-
-      this.confirmClassNum = document.getElementById('confirmClassNum');
-      this.confirmNickname = document.getElementById('confirmNickname');
-      this.btnStartConfirmed = document.getElementById('btnStartConfirmed');
-      this.btnEditNickname = document.getElementById('btnEditNickname');
-
-      this.registerClassNum = document.getElementById('registerClassNum');
+      this.authPassword = document.getElementById('authPassword');
+      this.authPlayerStatus = document.getElementById('authPlayerStatus');
+      this.authPlayerNameBadge = document.getElementById('authPlayerNameBadge');
+      this.authNewPlayerBox = document.getElementById('authNewPlayerBox');
       this.inputNickname = document.getElementById('inputNickname');
-      this.btnSaveNickname = document.getElementById('btnSaveNickname');
-      this.btnBackToSelect = document.getElementById('btnBackToSelect');
+      this.btnGameStart = document.getElementById('btnGameStart');
 
       // 完走・放置・記録モーダル
       this.goalModal = document.getElementById('goalModal');
@@ -220,13 +211,16 @@
     }
 
     initCoachImage() {
-      if (window.ASSETS && window.ASSETS.KYOJIN_IMG) {
-        if (this.coachImg) {
+      if (window.ASSETS) {
+        if (this.coachImg && window.ASSETS.KYOJIN_IMG) {
           this.coachImg.src = window.ASSETS.KYOJIN_IMG;
         }
         const bgHuge = document.getElementById('kyojinBgHuge');
-        if (bgHuge) {
-          bgHuge.style.backgroundImage = `url("${window.ASSETS.KYOJIN_IMG}")`;
+        if (bgHuge && window.ASSETS.KYOJIN_BG_FIELD) {
+          bgHuge.style.backgroundImage = `url("${window.ASSETS.KYOJIN_BG_FIELD}")`;
+        }
+        if (this.authModal && window.ASSETS.KYOJIN_BG_LOGIN) {
+          this.authModal.style.backgroundImage = `url("${window.ASSETS.KYOJIN_BG_LOGIN}")`;
         }
       }
     }
@@ -236,7 +230,7 @@
       for (let i = 1; i <= 45; i++) {
         const opt = document.createElement('option');
         opt.value = i;
-        opt.textContent = `背番号 ${i} 番`;
+        opt.textContent = i;
         this.authNumber.appendChild(opt);
       }
     }
@@ -246,6 +240,7 @@
         const users = await this.sync.fetchUsersFromSheet(2000);
         if (users && users.length > 0) {
           this.auth.syncWithRemoteUsers(users);
+          this.refreshAuthStatus();
         }
       } catch (e) {
         console.warn('Could not pre-fetch users:', e);
@@ -271,9 +266,24 @@
 
     showAuthModal() {
       this.authModal.classList.add('active');
-      this.authStepSelect.style.display = 'block';
-      this.authStepConfirm.style.display = 'none';
-      this.authStepRegister.style.display = 'none';
+      this.refreshAuthStatus();
+    }
+
+    refreshAuthStatus() {
+      if (!this.authClass || !this.authNumber) return;
+      const cls = `5年${this.authClass.value}組`;
+      const num = this.authNumber.value;
+      const check = this.auth.checkStudent(cls, num);
+
+      if (check.exists && check.nickname) {
+        this.authPlayerNameBadge.textContent = `⚾ ${cls} ${num}番 ${check.nickname} 選手`;
+        this.authPlayerNameBadge.style.color = '#7f1d1d';
+        this.authNewPlayerBox.style.display = 'none';
+      } else {
+        this.authPlayerNameBadge.textContent = `⚡ 新入部員（背番号 ${num} 番）`;
+        this.authPlayerNameBadge.style.color = '#c2410c';
+        this.authNewPlayerBox.style.display = 'block';
+      }
     }
 
     hideAuthModal() {
@@ -571,82 +581,43 @@
     }
 
     bindEvents() {
-      // ステップ1: クラス・番号選択後に「次へ進む！」（超高速・タイムアウト保証）
-      this.btnStepNext.addEventListener('click', async () => {
-        this.selectedClass = this.authClass.value;
-        this.selectedNumber = this.authNumber.value;
+      // 組・番号変更時のリアルタイム選手照合
+      if (this.authClass) {
+        this.authClass.addEventListener('change', () => this.refreshAuthStatus());
+      }
+      if (this.authNumber) {
+        this.authNumber.addEventListener('change', () => this.refreshAuthStatus());
+      }
 
-        const origText = this.btnStepNext.textContent;
-        this.btnStepNext.textContent = '☁️ 名簿確認中...';
-        this.btnStepNext.disabled = true;
+      // 試合開始！ボタン押下時（提示画像の赤い立体楕円ボタン）
+      if (this.btnGameStart) {
+        this.btnGameStart.addEventListener('click', () => {
+          this.sound.playHit(); // 快音カキーン！
 
-        try {
-          // 最大1.8秒で確実にタイムアウトする安全な読み出し
-          const users = await this.sync.fetchUsersFromSheet(1800);
-          if (users && users.length > 0) {
-            this.auth.syncWithRemoteUsers(users);
+          const clsVal = this.authClass.value;
+          const numVal = this.authNumber.value;
+          const fullClass = `5年${clsVal}組`;
+          const check = this.auth.checkStudent(fullClass, numVal);
+
+          let user = null;
+          let isNew = false;
+
+          if (check.exists && check.nickname) {
+            user = this.auth.loginExisting(fullClass, numVal);
+          } else {
+            let nick = (this.inputNickname.value || '').trim();
+            if (!nick) {
+              nick = `${numVal}番選手`;
+            }
+            user = this.auth.loginWithNickname(fullClass, numVal, nick);
+            isNew = true;
           }
-        } catch (e) {
-          console.warn('名簿確認スキップ (ローカルキャッシュ優先):', e);
-        } finally {
-          this.btnStepNext.textContent = origText;
-          this.btnStepNext.disabled = false;
-        }
 
-        // 即座に次の画面へ遷移（絶対にフリーズさせない！）
-        const check = this.auth.checkStudent(this.selectedClass, this.selectedNumber);
-        this.authStepSelect.style.display = 'none';
-
-        if (check.exists) {
-          this.confirmClassNum.textContent = `${this.selectedClass} ${this.selectedNumber}番`;
-          this.confirmNickname.textContent = check.nickname;
-          this.authStepConfirm.style.display = 'block';
-          this.authStepRegister.style.display = 'none';
-        } else {
-          this.registerClassNum.textContent = `${this.selectedClass} ${this.selectedNumber}番`;
-          this.inputNickname.value = '';
-          this.authStepRegister.style.display = 'block';
-          this.authStepConfirm.style.display = 'none';
-          setTimeout(() => this.inputNickname.focus(), 100);
-        }
-      });
-
-      // ステップ2-A: 「よし、特訓開始だ！！」
-      this.btnStartConfirmed.addEventListener('click', () => {
-        const user = this.auth.loginExisting(this.selectedClass, this.selectedNumber);
-        if (user) {
-          this.onLoginComplete(user, false);
-        }
-      });
-
-      // ステップ2-A: 「名前を修正する / 別の選手」
-      this.btnEditNickname.addEventListener('click', () => {
-        const check = this.auth.checkStudent(this.selectedClass, this.selectedNumber);
-        this.registerClassNum.textContent = `${this.selectedClass} ${this.selectedNumber}番`;
-        this.inputNickname.value = check.nickname || '';
-        this.authStepConfirm.style.display = 'none';
-        this.authStepRegister.style.display = 'block';
-        setTimeout(() => this.inputNickname.focus(), 100);
-      });
-
-      // ステップ2-B: 「登録してバッターボックスへ！」
-      this.btnSaveNickname.addEventListener('click', () => {
-        const nick = this.inputNickname.value.trim();
-        if (!nick) {
-          alert('登録名を入力するんだ！');
-          this.inputNickname.focus();
-          return;
-        }
-        const user = this.auth.loginWithNickname(this.selectedClass, this.selectedNumber, nick);
-        this.onLoginComplete(user, true);
-      });
-
-      // ステップ2-B: 「クラス・番号を選び直す」
-      this.btnBackToSelect.addEventListener('click', () => {
-        this.authStepRegister.style.display = 'none';
-        this.authStepConfirm.style.display = 'none';
-        this.authStepSelect.style.display = 'block';
-      });
+          if (user) {
+            this.onLoginComplete(user, isNew);
+          }
+        });
+      }
 
       // キーボード操作
       const boxes = [this.inputWhole, this.inputNum, this.inputDen];
