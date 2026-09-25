@@ -1,0 +1,21 @@
+# メディア・テスト原本スキャン画像等の除外（セキュリティルール遵守）
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.pdf
+*原本*
+*テスト*
+
+# OS / エディタ一時ファイル / 認証情報
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+node_modules/
+.clasprc.json
+*.gsheet
+*.gdoc
+*.gslides
+

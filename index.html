@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小5 分数計算30分ドリル</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 16:9 アスペクト比完全準拠コンテナ -->
+  <div class="app-viewport">
+    <!-- ヘッダー -->
+    <header>
+    <div class="title-area">
+      <h1>📐 分数30分ドリル</h1>
+      <!-- ログイン中の児童情報表示 -->
+      <span class="student-tag" id="studentTag">
+        <span id="studentDisplayName">ログイン中...</span>
+      </span>
+    </div>
+
+    <div class="header-right">
+      <!-- スマート保存ボタン -->
+      <div class="sync-area">
+        <button class="btn-sync status-saved" id="btnSync" title="スプレッドシートへの保存状態">
+          <span id="btnSyncText">✅ 保存完了</span>
+        </button>
+      </div>
+
+      <!-- 30分カウントダウンバータイマー -->
+      <div class="timer-container" title="放置中や別タブを見ている間はカウントが自動停止します">
+        <div class="timer-top-row">
+          <span class="timer-label">⏱️ のこり時間</span>
+          <span class="timer-display" id="timerDisplay">30:00</span>
+        </div>
+        <div class="progress-bar-wrap" title="30分カウントダウンバー">
+          <div class="progress-bar-fill" id="timerProgress"></div>
+        </div>
+        <div class="timer-sub-text" id="timerSubText">目標30分まで あと 30分</div>
+      </div>
+
+      <button class="btn-header" id="btnShowLogs">📊 きょうの記録</button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main>
+    <!-- 左側: 計算ドリル -->
+    <section class="drill-container">
+      <div class="card">
+        <div class="problem-header">
+          <span class="badge-category" id="categoryBadge">帯分数の足し算</span>
+          <span class="probTimerBadge" id="probTimerBadge">考え中: 0秒</span>
+        </div>
+
+        <!-- 数式表示（教科書スタイルの縦書き分数） -->
+        <div class="formula-display" id="formulaDisplay">
+          <!-- JSで自動生成 -->
+        </div>
+
+        <!-- 解答入力エリア -->
+        <div class="answer-area">
+          <div class="input-boxes">
+            <!-- 整数部分 -->
+            <div class="input-whole-wrap">
+              <input type="text" id="inputWhole" class="input-box" inputmode="numeric" placeholder="" maxlength="2">
+              <span class="box-label">整数（なしは空欄）</span>
+            </div>
+
+            <!-- 分数部分 -->
+            <div class="input-frac-wrap">
+              <input type="text" id="inputNum" class="input-box input-box-small" inputmode="numeric" placeholder="分子" maxlength="3">
+              <div class="input-frac-divider"></div>
+              <input type="text" id="inputDen" class="input-box input-box-small" inputmode="numeric" placeholder="分母" maxlength="3">
+            </div>
+          </div>
+
+          <!-- キーボード操作ガイド -->
+          <div class="keyboard-guide">
+            <span><span class="kbd-badge">Tab</span> マス移動</span>
+            <span><span class="kbd-badge">矢印キー ↑↓←→</span> 移動</span>
+            <span><span class="kbd-badge">Enter</span> こたえあわせ</span>
+          </div>
+
+          <!-- メッセージ領域 -->
+          <div class="feedback-box feedback-empty" id="feedbackBox"></div>
+
+          <!-- アクションボタン -->
+          <div class="action-buttons">
+            <button class="btn-check" id="btnCheck">こたえあわせ (Enter)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成長比較ダッシュボード（今日とこれまでの成長がひと目でわかるカード） -->
+      <div class="growth-dashboard">
+        <!-- 1. 学習時間 -->
+        <div class="growth-card">
+          <div class="growth-card-header">
+            <span>⏱️ 今日の学習</span>
+            <span style="font-size: 0.72rem; color: #10b981; font-weight: bold;">目標30分</span>
+          </div>
+          <div class="growth-main-val" id="statTodayTime">0分</div>
+          <div class="growth-sub-val" id="statRemainingTime">あと 30分</div>
+          <div class="growth-badge normal" id="statAllTime">累計: 0分</div>
+        </div>
+
+        <!-- 2. 解いた問題数 -->
+        <div class="growth-card">
+          <div class="growth-card-header">
+            <span>📝 解いた問題</span>
+            <span style="font-size: 0.72rem; color: #3b82f6;">きょう</span>
+          </div>
+          <div class="growth-main-val" id="statTodaySolved">0問</div>
+          <div class="growth-sub-val" id="statAllSolved">累計: 0問</div>
+          <div class="growth-badge normal" id="statSessionBadge">本日チャレンジ中</div>
+        </div>
+
+        <!-- 3. 1発正解率 -->
+        <div class="growth-card">
+          <div class="growth-card-header">
+            <span>🎯 1発正解率</span>
+            <span style="font-size: 0.72rem; color: #64748b;">きょう</span>
+          </div>
+          <div class="growth-main-val" id="statTodayAcc">100%</div>
+          <div class="growth-sub-val" id="statPastAcc">これまで: -</div>
+          <div class="growth-badge normal" id="statAccBadge">-</div>
+        </div>
+
+        <!-- 4. 平均解答時間（昨日と比較して早いじゃん！） -->
+        <div class="growth-card">
+          <div class="growth-card-header">
+            <span>⚡ 平均回答時間</span>
+            <span style="font-size: 0.72rem; color: #64748b;">1問あたり</span>
+          </div>
+          <div class="growth-main-val" id="statTodaySpeed">-</div>
+          <div class="growth-sub-val" id="statPastSpeed">これまで: -</div>
+          <div class="growth-badge normal" id="statSpeedBadge">データ収集中</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右側: 通分・筆算用の手書き計算用紙（スクラッチパッド） -->
+    <aside class="side-panel">
+      <div class="card scratchpad-card">
+        <div class="scratchpad-header">
+          <span class="scratchpad-title">✏️ けいさん用紙（通分のメモに）</span>
+          <div class="scratch-tools">
+            <button class="tool-btn active" id="toolPen">ペン</button>
+            <button class="tool-btn" id="toolEraser">消しゴム</button>
+            <button class="tool-btn" id="toolClear">ぜんぶ消す</button>
+          </div>
+        </div>
+        <div class="canvas-container">
+          <canvas id="scratchCanvas"></canvas>
+        </div>
+      </div>
+    </aside>
+  </main>
+  </div> <!-- /.app-viewport -->
+
+  <!-- ログインモーダル（クラス・番号選択 ＆ 名前確認） -->
+  <div class="modal-overlay auth-modal-overlay" id="authModal">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-icon">🎒</div>
+      <h2 style="font-size: 1.4rem; color: #1e293b; margin-bottom: 8px;">分数ドリルをはじめよう！</h2>
+
+      <!-- ステップ1: クラスと出席番号の選択 -->
+      <div id="authStepSelect">
+        <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">
+          自分のクラスと出席番号をえらんでね。
+        </p>
+
+        <div class="auth-form-row">
+          <div class="auth-form-col">
+            <label class="auth-form-label">クラス</label>
+            <select class="auth-select" id="authClass">
+              <option value="5年1組">5年1組</option>
+              <option value="5年2組">5年2組</option>
+              <option value="5年3組">5年3組</option>
+              <option value="5年4組">5年4組</option>
+              <option value="5年5組">5年5組</option>
+              <option value="5年6組">5年6組</option>
+            </select>
+          </div>
+          <div class="auth-form-col">
+            <label class="auth-form-label">出席番号</label>
+            <select class="auth-select" id="authNumber">
+              <!-- JSで1〜45番を生成 -->
+            </select>
+          </div>
+        </div>
+
+        <button type="button" class="auth-submit-btn" id="btnStepNext">つぎへ 👉</button>
+      </div>
+
+      <!-- ステップ2-A: 登録済み児童の確認画面 -->
+      <div id="authStepConfirm" style="display: none;">
+        <div class="confirm-name-box">
+          <div style="font-size: 0.95rem; color: #15803d; font-weight: bold;">
+            <span id="confirmClassNum">5年1組 1番</span>
+          </div>
+          <div class="confirm-nickname" id="confirmNickname">たろう</div>
+          <div style="font-size: 0.9rem; color: #334155; font-weight: bold; margin-top: 4px;">
+            さんですね！合っていますか？
+          </div>
+        </div>
+
+        <button type="button" class="auth-submit-btn" id="btnStartConfirmed">
+          はい、学習スタート！ 🚀
+        </button>
+
+        <div>
+          <button type="button" class="btn-link-sub" id="btnEditNickname">
+            名前をなおす / 別の人
+          </button>
+        </div>
+      </div>
+
+      <!-- ステップ2-B: はじめての名前登録画面 -->
+      <div id="authStepRegister" style="display: none;">
+        <div class="confirm-name-box" style="background: #eff6ff; border-color: #bfdbfe;">
+          <div style="font-size: 0.95rem; color: #1e40af; font-weight: bold;">
+            <span id="registerClassNum">5年1組 1番</span>
+          </div>
+          <div style="font-size: 0.95rem; color: #1e3a8a; font-weight: bold; margin-top: 4px;">
+            はじめてですね！お名前を入力してね
+          </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 16px;">
+          <label class="auth-form-label">ニックネーム（ドリルで呼ぶ名前）</label>
+          <input type="text" class="auth-input" id="inputNickname" placeholder="例: たろう、さくら" maxlength="12" autofocus>
+        </div>
+
+        <button type="button" class="auth-submit-btn" id="btnSaveNickname">
+          登録してスタート！ 🚀
+        </button>
+
+        <div>
+          <button type="button" class="btn-link-sub" id="btnBackToSelect">
+            クラス・番号をえらびなおす
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 放置・お休み検知モーダル -->
+  <div class="modal-overlay" id="idleModal">
+    <div class="modal-content">
+      <div class="modal-icon">☕</div>
+      <div class="modal-title">お休み中かな？</div>
+      <div class="modal-desc">
+        しばらく操作がなかったため、タイマーを一時停止しています。<br>
+        準備ができたら下のボタンを押して再開しよう！
+      </div>
+      <button class="btn-resume" id="btnResume">学習をつづける！</button>
+    </div>
+  </div>
+
+  <!-- 記録確認モーダル -->
+  <div class="modal-overlay" id="logModal">
+    <div class="modal-content log-modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 1.3rem;">📊 きょうの学習記録</h2>
+        <button class="btn-header" id="btnCloseLogs">✕ とじる</button>
+      </div>
+      <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+        ※各問題の解答時間と間違えた回数が端末に自動記録され、1分おきに先生のスプレッドシートへ自動送信されます。
+      </p>
+
+      <div class="log-table-wrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>時刻</th>
+              <th>問題</th>
+              <th>正解</th>
+              <th>解答時間</th>
+              <th>結果</th>
+              <th>単元タイプ</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <!-- JSで動的生成 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="log-modal-actions" style="justify-content: flex-end;">
+        <button class="btn-header" id="btnCloseLogsBottom">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- スクリプト読み込み -->
+  <script src="js/fraction.js"></script>
+  <script src="js/tracker.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
