@@ -284,7 +284,26 @@
 
       const todayStats = calcStats(todayLogs);
       const pastStats = calcStats(pastLogs);
-      const allStats = calcStats(allUserLogs);
+
+      // スプレッドシート由来の過去サマリー（別端末での学習履歴など）を反映
+      if (userInfo && userInfo.summary) {
+        const s = userInfo.summary;
+        const remoteSolved = Number(s.totalSolved) || 0;
+        if (pastStats.count === 0 && remoteSolved > 0) {
+          pastStats.count = remoteSolved;
+          pastStats.totalMinutes = Number(s.totalMinutes) || 0;
+          pastStats.accuracy = (s.accuracy !== null && s.accuracy !== undefined) ? Number(s.accuracy) : 100;
+          pastStats.avgSec = (s.avgSeconds !== null && s.avgSeconds !== undefined) ? Number(s.avgSeconds) : 0;
+        }
+      }
+
+      // 累計実績の統合
+      const combinedTotalCount = pastStats.count + todayStats.count;
+      const combinedTotalMinutes = Math.round((pastStats.totalMinutes + (todayStats.count > 0 ? (todayStats.avgSec * todayStats.count / 60) : 0)) * 10) / 10;
+      const allStats = {
+        count: combinedTotalCount,
+        totalMinutes: combinedTotalMinutes
+      };
 
       // 今日の学習時間（分）と残り時間（分）
       const todayMinutes = Math.floor(this.activeSeconds / 60);

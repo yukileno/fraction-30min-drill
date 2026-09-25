@@ -40,7 +40,7 @@
       return `${className}-${number}`;
     }
 
-    // スプレッドシートから読み込んだ名簿を取り込む
+    // スプレッドシートから読み込んだ名簿を取り込む（累計サマリー情報も含む）
     syncWithRemoteUsers(users) {
       if (!Array.isArray(users) || users.length === 0) return;
       const registry = this.getRegistry();
@@ -49,10 +49,16 @@
       users.forEach(u => {
         if (u.className && u.studentNumber && u.nickname) {
           const key = this.makeKey(u.className, u.studentNumber);
-          if (registry[key] !== u.nickname) {
-            registry[key] = u.nickname;
-            updated = true;
-          }
+          registry[key] = {
+            nickname: u.nickname,
+            totalSolved: Number(u.totalSolved) || 0,
+            totalMinutes: Number(u.totalMinutes) || 0,
+            accuracy: (u.accuracy !== undefined && u.accuracy !== null) ? Number(u.accuracy) : null,
+            avgSeconds: (u.avgSeconds !== undefined && u.avgSeconds !== null) ? Number(u.avgSeconds) : null,
+            totalMistakes: Number(u.totalMistakes) || 0,
+            lastStudyAt: u.lastStudyAt || ''
+          };
+          updated = true;
         }
       });
 
@@ -65,21 +71,25 @@
     checkStudent(className, number) {
       const key = this.makeKey(className, number);
       const registry = this.getRegistry();
-      const nickname = registry[key];
+      const val = registry[key];
 
-      if (nickname) {
+      if (val) {
+        const nickname = typeof val === 'object' ? val.nickname : val;
+        const summary = typeof val === 'object' ? val : null;
         return {
           exists: true,
           className: className,
           studentNumber: Number(number),
-          nickname: nickname
+          nickname: nickname,
+          summary: summary
         };
       }
       return {
         exists: false,
         className: className,
         studentNumber: Number(number),
-        nickname: ''
+        nickname: '',
+        summary: null
       };
     }
 
@@ -89,14 +99,19 @@
       const key = this.makeKey(className, number);
       const registry = this.getRegistry();
 
-      registry[key] = cleanNick;
+      const existing = (typeof registry[key] === 'object' && registry[key] !== null)
+        ? registry[key]
+        : { totalSolved: 0, totalMinutes: 0, accuracy: null, avgSeconds: null, totalMistakes: 0, lastStudyAt: '' };
+      existing.nickname = cleanNick;
+      registry[key] = existing;
       this.saveRegistry(registry);
 
       const user = {
         className: className,
         studentNumber: Number(number),
         nickname: cleanNick,
-        displayName: `${className} ${number}番 ${cleanNick}`
+        displayName: `${className} ${number}番 ${cleanNick}`,
+        summary: existing
       };
 
       this.currentUser = user;
@@ -112,7 +127,8 @@
         className: className,
         studentNumber: Number(number),
         nickname: checked.nickname,
-        displayName: `${className} ${number}番 ${checked.nickname}`
+        displayName: `${className} ${number}番 ${checked.nickname}`,
+        summary: checked.summary
       };
 
       this.currentUser = user;
