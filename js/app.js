@@ -220,8 +220,14 @@
     }
 
     initCoachImage() {
-      if (window.ASSETS && window.ASSETS.KYOJIN_IMG && this.coachImg) {
-        this.coachImg.src = window.ASSETS.KYOJIN_IMG;
+      if (window.ASSETS && window.ASSETS.KYOJIN_IMG) {
+        if (this.coachImg) {
+          this.coachImg.src = window.ASSETS.KYOJIN_IMG;
+        }
+        const bgHuge = document.getElementById('kyojinBgHuge');
+        if (bgHuge) {
+          bgHuge.style.backgroundImage = `url("${window.ASSETS.KYOJIN_IMG}")`;
+        }
       }
     }
 
@@ -309,6 +315,12 @@
 
     nextProblem() {
       this.currentProblem = generateProblem(this.problemMode);
+      
+      const f1Str = this.currentProblem.frac1 ? this.formatFrac(this.currentProblem.frac1) : '';
+      const f2Str = this.currentProblem.frac2 ? this.formatFrac(this.currentProblem.frac2) : '';
+      this.currentProblem.formula = `${f1Str} ${this.currentProblem.op} ${f2Str}`;
+      this.currentProblem.correctAnswer = this.formatAns(this.currentProblem.answer);
+
       this.pitchNumberBadge.textContent = `第 ${this.pitchCount} 球！ 勝負！`;
       this.categoryBadge.textContent = this.currentProblem.category;
       this.renderFormula(this.currentProblem);
@@ -318,7 +330,9 @@
     }
 
     renderFormula(prob) {
+      if (!prob) return;
       const renderTerm = (term) => {
+        if (!term) return '';
         let html = '<div class="fraction-term">';
         if (term.whole > 0) {
           html += `<span class="frac-whole">${term.whole}</span>`;
@@ -337,8 +351,10 @@
         return html;
       };
 
-      const leftHtml = renderTerm(prob.term1);
-      const rightHtml = renderTerm(prob.term2);
+      const term1 = prob.frac1 || prob.term1;
+      const term2 = prob.frac2 || prob.term2;
+      const leftHtml = renderTerm(term1);
+      const rightHtml = renderTerm(term2);
       const opSymbol = prob.op === '+' ? '＋' : '－';
 
       this.formulaEl.innerHTML = `
@@ -347,6 +363,20 @@
         ${rightHtml}
         <span class="equals">＝</span>
       `;
+    }
+
+    formatFrac(f) {
+      if (!f) return '';
+      if (f.whole > 0 && f.num > 0) return `${f.whole}と${f.num}/${f.den}`;
+      if (f.whole > 0) return `${f.whole}`;
+      return `${f.num}/${f.den}`;
+    }
+
+    formatAns(a) {
+      if (!a) return '';
+      if (a.isInteger || a.num === 0) return String(a.whole);
+      if (a.whole === 0) return `${a.num}/${a.den}`;
+      return `${a.whole}と${a.num}/${a.den}`;
     }
 
     resetInputs() {
@@ -360,8 +390,9 @@
       [this.inputWhole, this.inputNum, this.inputDen].forEach(b => b.classList.remove('active-target'));
       if (box) {
         this.activeInputBox = box;
-        box.classList.add('active-target');
-        box.focus();
+        if (typeof box.focus === 'function') {
+          box.focus();
+        }
       }
     }
 
