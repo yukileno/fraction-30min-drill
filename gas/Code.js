@@ -251,6 +251,16 @@ function doGet(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // 5. 「研究用_学習曲線」シートの単元別グラフ自動再構築
+    if (action === 'setup_research') {
+      var res = setupResearchSheet();
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: '研究用_学習曲線シートを単元別グラフ機能付きで再構築しました。',
+        result: res
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // デフォルト: 稼働ステータス確認
     return ContentService.createTextOutput(JSON.stringify({
       status: 'ok',
@@ -752,7 +762,7 @@ function setupDailySummarySheet() {
 }
 
 /**
- * 📈 「研究用_学習曲線」シートの作成
+ * 📈 「研究用_学習曲線」シートの作成 ＆ 単元別グラフ自動生成
  */
 function setupResearchSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -762,44 +772,124 @@ function setupResearchSheet() {
     sheet = ss.insertSheet(sheetName);
   } else {
     sheet.clear();
+    // 既存のグラフを一旦全削除
+    var oldCharts = sheet.getCharts();
+    for (var c = 0; c < oldCharts.length; c++) {
+      sheet.removeChart(oldCharts[c]);
+    }
   }
 
-  // コントロール部
-  sheet.getRange('A1').setValue('🏫 クラス:').setFontWeight('bold');
+  // --- 1行目: 条件指定コントロールバー ---
+  // A1-B1: クラス
+  sheet.getRange('A1').setValue('🏫 クラス:').setFontWeight('bold').setBackground('#f1f5f9');
   sheet.getRange('B1').setValue('5年1組').setBackground('#fef3c7').setFontWeight('bold');
   var classRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(['5年1組', '5年2組', '5年3組', '5年4組', '5年5組', '5年6組'], true)
     .build();
   sheet.getRange('B1').setDataValidation(classRule);
 
-  sheet.getRange('C1').setValue('出席番号:').setFontWeight('bold');
+  // C1-D1: 出席番号
+  sheet.getRange('C1').setValue('出席番号:').setFontWeight('bold').setBackground('#f1f5f9');
   sheet.getRange('D1').setValue(1).setBackground('#fef3c7').setFontWeight('bold');
+  var numList = ['全員'];
+  for (var n = 1; n <= 45; n++) numList.push(String(n));
+  var numRule = SpreadsheetApp.newDataValidation().requireValueInList(numList, true).build();
+  sheet.getRange('D1').setDataValidation(numRule);
 
-  sheet.getRange('E1').setValue('児童名:').setFontWeight('bold');
-  sheet.getRange('F1').setFormula('=IFERROR(INDEX(児童名簿!$D:$D, MATCH(1, (児童名簿!$B:$B=$B$1)*(児童名簿!$C:$C=$D$1), 0)), "未登録")')
+  // E1-F1: 児童名
+  sheet.getRange('E1').setValue('児童名:').setFontWeight('bold').setBackground('#f1f5f9');
+  sheet.getRange('F1').setFormula('=IF($D$1="全員", "【学級全員】", IFERROR(INDEX(児童名簿!$D:$D, MATCH(1, (児童名簿!$B:$B=$B$1)*(児童名簿!$C:$C=VALUE($D$1)), 0)), "未登録"))')
     .setFontWeight('bold').setFontColor('#15803d');
 
-  sheet.getRange('G1').setValue('※クラスと出席番号を選ぶと、その児童の全問題の時系列ログが自動抽出されます').setFontColor('#64748b').setFontSize(9);
+  // G1-H1: 単元分類フィルター（ユーザーの要望！）
+  sheet.getRange('G1').setValue('🎯 単元分類:').setFontWeight('bold').setBackground('#f1f5f9');
+  sheet.getRange('H1').setValue('すべて（全単元）').setBackground('#fef3c7').setFontWeight('bold');
+  var unitList = [
+    'すべて（全単元）',
+    '真分数の足し算',
+    '真分数の引き算',
+    '帯分数の足し算',
+    '帯分数の足し算（繰り上がりあり）',
+    '帯分数の引き算',
+    '帯分数の引き算（繰り下がりあり）',
+    '約分あり'
+  ];
+  var unitRule = SpreadsheetApp.newDataValidation().requireValueInList(unitList, true).build();
+  sheet.getRange('H1').setDataValidation(unitRule);
 
-  // 表ヘッダー
+  // --- 2行目: リアルタイム成績サマリーバー ---
+  sheet.getRange('A2').setValue('📊 対象問題数:').setFontWeight('bold');
+  sheet.getRange('B2').setFormula('=COUNT(F4:F)').setFontWeight('bold').setFontColor('#2563eb');
+
+  sheet.getRange('C2').setValue('⚡ 平均解答秒数:').setFontWeight('bold');
+  sheet.getRange('D2').setFormula('=IFERROR(ROUND(AVERAGE(F4:F), 1) & " 秒", "-")').setFontWeight('bold').setFontColor('#d97706');
+
+  sheet.getRange('E2').setValue('🎯 1発正解率:').setFontWeight('bold');
+  sheet.getRange('F2').setFormula('=IFERROR(ROUND(COUNTIF(G4:G, 0) / MAX(1, COUNT(F4:F)) * 100, 1) & " %", "-")').setFontWeight('bold').setFontColor('#16a34a');
+
+  sheet.getRange('G2').setValue('💥 総ミス回数:').setFontWeight('bold');
+  sheet.getRange('H2').setFormula('=IFERROR(SUM(G4:G) & " 回", "-")').setFontWeight('bold').setFontColor('#dc2626');
+
+  sheet.getRange('A2:H2').setBackground('#f8fafc').setBorder(true, true, true, true, false, false);
+
+  // --- 3行目: テーブルヘッダー ---
   var headers = [
-    '解いた順番(問目)', '記録日時', '問題式', '単元分類',
+    '解いた順番', '記録日時', '問題式', '単元分類',
     '正解', '所要時間(秒)', '間違えた回数', '結果(1発/ミス)'
   ];
   sheet.getRange(3, 1, 1, headers.length).setValues([headers])
-    .setBackground('#047857').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+    .setBackground('#1e40af').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
   sheet.setFrozenRows(3);
 
-  var filterFormula = '=IFERROR(QUERY(計算ドリル記録!A2:J, "SELECT A, E, G, H, I, J WHERE B = \'" & $B$1 & "\' AND C = " & $D$1 & " ORDER BY A ASC", 0), "")';
-  sheet.getRange('B4').setFormula(filterFormula);
+  // --- 4行目以降: 自動抽出数式 ---
+  // QUERY式: クラス、出席番号(全員対応)、単元分類(部分一致対応)の3条件を完全網羅
+  var queryFormula = '=IFERROR(QUERY(計算ドリル記録!A2:L, "SELECT A, E, G, H, I, J WHERE B = \'" & $B$1 & "\' " & IF($D$1="全員", "", " AND C = " & $D$1) & IF($H$1="すべて（全単元）", "", IF($H$1="約分あり", " AND G CONTAINS \'約分\'", " AND G CONTAINS \'" & $H$1 & "\'")) & " ORDER BY A ASC", 0), "")';
+  sheet.getRange('B4').setFormula(queryFormula);
+
+  // A列: 解いた順番 (第 1 問, 第 2 問...)
   sheet.getRange('A4').setFormula('=ARRAYFORMULA(IF(ISBLANK(B4:B), "", "第 " & (ROW(B4:B)-3) & " 問"))');
 
-  sheet.setColumnWidth(1, 130);
-  sheet.setColumnWidth(2, 160);
-  sheet.setColumnWidth(3, 150);
-  sheet.setColumnWidth(4, 160);
-  sheet.setColumnWidth(5, 100);
-  sheet.setColumnWidth(6, 120);
+  // H列: 結果 (○ 1発ヒット / × N回空振り)
+  sheet.getRange('H4').setFormula('=ARRAYFORMULA(IF(ISBLANK(B4:B), "", IF(G4:G=0, "○ 1発ヒット", "× " & G4:G & "回空振り")))');
+
+  // 列幅設定
+  sheet.setColumnWidth(1, 100);
+  sheet.setColumnWidth(2, 155);
+  sheet.setColumnWidth(3, 140);
+  sheet.setColumnWidth(4, 180);
+  sheet.setColumnWidth(5, 90);
+  sheet.setColumnWidth(6, 110);
   sheet.setColumnWidth(7, 110);
-  sheet.setColumnWidth(8, 110);
+  sheet.setColumnWidth(8, 120);
+
+  // 書式
+  sheet.getRange('F4:F').setNumberFormat('#,##0');
+  sheet.getRange('G4:G').setNumberFormat('#,##0');
+
+  // --- 📈 複合グラフの自動生成（所要時間 ＆ エラー率・ミスの可視化） ---
+  var chart = sheet.newChart()
+    .asComboChart()
+    .addRange(sheet.getRange('A3:A100')) // 横軸ラベル: 第1問, 第2問...
+    .addRange(sheet.getRange('F3:F100')) // 系列1: 所要時間(秒) [折れ線]
+    .addRange(sheet.getRange('G3:G100')) // 系列2: 間違えた回数 [棒グラフ]
+    .setPosition(4, 10, 0, 0)           // J4セルから配置
+    .setOption('title', '📈 学習曲線 ＆ エラー推移グラフ（問題ごとの解答秒数 ＆ ミス回数）')
+    .setOption('titleTextStyle', { fontSize: 13, bold: true, color: '#0f172a' })
+    .setOption('series', {
+      0: { type: 'line', targetAxisIndex: 0, color: '#2563eb', lineWidth: 3, pointSize: 6, labelInLegend: '所要時間 (秒)' },
+      1: { type: 'bars', targetAxisIndex: 1, color: '#ef4444', labelInLegend: '間違えた回数 (ミス)' }
+    })
+    .setOption('vAxes', {
+      0: { title: '所要時間 (秒)', minValue: 0, titleTextStyle: { color: '#2563eb', bold: true } },
+      1: { title: '間違えた回数 (回)', minValue: 0, titleTextStyle: { color: '#ef4444', bold: true } }
+    })
+    .setOption('hAxis', { title: '解いた問題の順番', slantedText: true, slantedTextAngle: 45 })
+    .setOption('legend', { position: 'top' })
+    .setOption('width', 740)
+    .setOption('height', 400)
+    .build();
+
+  sheet.insertChart(chart);
+
+  return { status: 'success', sheet: sheetName };
 }
