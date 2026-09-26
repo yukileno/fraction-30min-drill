@@ -37,7 +37,11 @@
     }
 
     makeKey(className, number) {
-      return `${className}-${number}`;
+      // 「5年1組」「1組」「1」などの表記揺れを吸収し、統一キーを生成
+      const str = String(className || '').trim();
+      const match = str.match(/(\d+)\s*組?/);
+      const classNum = match ? match[1] : str;
+      return `組${classNum}-番${Number(number)}`;
     }
 
     // スプレッドシートから読み込んだ名簿を取り込む（累計サマリー情報も含む）

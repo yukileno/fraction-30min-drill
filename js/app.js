@@ -241,7 +241,7 @@
 
     async loadRemoteUsers() {
       try {
-        const users = await this.sync.fetchUsersFromSheet(2000);
+        const users = await this.sync.fetchUsersFromSheet(4000);
         if (users && users.length > 0) {
           this.auth.syncWithRemoteUsers(users);
         }
@@ -578,11 +578,15 @@
         this.btnStepNext.textContent = '☁️ 名簿確認中...';
         this.btnStepNext.disabled = true;
 
+        let check = this.auth.checkStudent(this.selectedClass, this.selectedNumber);
+
         try {
-          // 最大1.8秒で確実にタイムアウトする安全な読み出し
-          const users = await this.sync.fetchUsersFromSheet(1800);
+          // 既知なら1.5秒、未登録判定時は3.8秒待ってGASから確実に名簿を取得
+          const timeout = check.exists ? 1500 : 3800;
+          const users = await this.sync.fetchUsersFromSheet(timeout);
           if (users && users.length > 0) {
             this.auth.syncWithRemoteUsers(users);
+            check = this.auth.checkStudent(this.selectedClass, this.selectedNumber);
           }
         } catch (e) {
           console.warn('名簿確認スキップ (ローカルキャッシュ優先):', e);
@@ -591,8 +595,7 @@
           this.btnStepNext.disabled = false;
         }
 
-        // 即座に次の画面へ遷移（絶対にフリーズさせない！）
-        const check = this.auth.checkStudent(this.selectedClass, this.selectedNumber);
+        // 次の画面へ遷移
         this.authStepSelect.style.display = 'none';
 
         if (check.exists) {

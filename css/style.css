@@ -270,54 +270,40 @@ header.stadium-header {
   font-weight: bold;
 }
 
-/* メインコンテンツ配置 (16:9完全収容) */
+/* メインコンテンツ配置 (中央センタリング＆10インチChromebook完全収容) */
 main.field-main {
   flex: 1;
   display: flex;
-  padding: 10px 14px;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px 16px;
+  gap: 8px;
   width: 100%;
   height: calc(100% - 58px);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 2;
 }
 
 .batter-box {
-  flex: 3;
-  max-width: 580px;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-.bench-panel {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  min-width: 250px;
-  pointer-events: none;
-}
-
-.bench-panel .coach-speech-bubble {
-  pointer-events: auto;
-  max-width: 360px;
-  align-self: flex-end;
+  gap: 8px;
 }
 
 /* 劇画・漫画風カード */
 .card.comic-card {
-  background: rgba(255, 255, 255, 0.93);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 3px solid var(--border-comic);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: var(--shadow-comic-lg);
-  padding: 12px 16px;
+  padding: 10px 16px;
   position: relative;
 }
 
@@ -331,7 +317,7 @@ main.field-main {
 .badge-pitch {
   background: #dc2626;
   color: #fff;
-  padding: 3px 10px;
+  padding: 2px 10px;
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: 900;
@@ -343,7 +329,7 @@ main.field-main {
 .badge-category.comic-badge {
   background: #fed7aa;
   color: #9a3412;
-  padding: 3px 8px;
+  padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: bold;
@@ -362,13 +348,13 @@ main.field-main {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  padding: 16px 12px;
-  font-size: 3rem;
+  padding: 10px 12px;
+  font-size: 2.8rem;
   font-weight: 900;
   background: #ffffff;
   border: 3px solid #0f172a;
   border-radius: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 3px 3px 0 #000;
   color: #000000;
 }
@@ -649,22 +635,37 @@ main.field-main {
   color: #475569;
 }
 
-/* 鬼監督セリフ吹き出し */
+/* 鬼監督セリフ吹き出し（中央打席の上部に堂々配置） */
 .coach-speech-bubble {
-  background: rgba(255, 247, 237, 0.95);
+  background: rgba(255, 247, 237, 0.96);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border: 3px solid #ea580c;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 0.92rem;
+  border-radius: 12px;
+  padding: 6px 16px;
+  font-size: 0.95rem;
   font-weight: 900;
   font-style: italic;
   color: #9a3412;
   position: relative;
-  line-height: 1.4;
+  line-height: 1.35;
   box-shadow: var(--shadow-comic);
   text-align: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.coach-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid #ea580c;
 }
 
 /* 作戦板（計算用紙） */
@@ -960,3 +961,129 @@ canvas#scratchCanvas {
   50% { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
+
+/* 10インチChromebook（実質縦600〜740px）向け垂直スペース完全最適化 */
+@media (max-height: 760px) {
+  header.stadium-header {
+    height: 48px;
+    padding: 3px 12px;
+  }
+  .comic-title {
+    font-size: 1.15rem;
+  }
+  .player-badge {
+    padding: 2px 8px;
+    font-size: 0.78rem;
+  }
+  .knock-scoreboard {
+    padding: 2px 8px;
+  }
+  .knock-status-label {
+    font-size: 0.72rem;
+  }
+  .knock-count-num {
+    font-size: 1.35rem;
+  }
+  .stadium-bar-wrap {
+    width: 130px;
+    height: 8px;
+    margin: 1px 0;
+  }
+  .knock-sub-text {
+    font-size: 0.62rem;
+  }
+  main.field-main {
+    height: calc(100% - 48px);
+    padding: 5px 12px;
+    gap: 6px;
+  }
+  .batter-box {
+    max-width: 620px;
+    gap: 6px;
+  }
+  .coach-speech-bubble {
+    padding: 4px 12px;
+    font-size: 0.88rem;
+  }
+  .card.comic-card {
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
+  .problem-header {
+    margin-bottom: 4px;
+  }
+  .formula-display.comic-formula {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    font-size: 2.3rem;
+    gap: 12px;
+    border-radius: 8px;
+  }
+  .frac-whole {
+    font-size: 2.3rem;
+  }
+  .frac-num, .frac-den {
+    font-size: 1.5rem;
+    min-width: 24px;
+  }
+  .operator, .equals {
+    font-size: 1.9rem;
+  }
+  .answer-area {
+    gap: 6px;
+  }
+  .input-boxes.comic-inputs {
+    padding: 5px 14px;
+    border-radius: 8px;
+  }
+  .input-box {
+    width: 50px;
+    height: 44px;
+    font-size: 1.5rem;
+  }
+  .input-box-small {
+    width: 44px;
+    height: 34px;
+    font-size: 1.3rem;
+  }
+  .input-frac-divider {
+    width: 44px;
+    height: 2px;
+  }
+  .keyboard-guide {
+    font-size: 0.72rem;
+    gap: 10px;
+  }
+  .feedback-box {
+    min-height: 28px;
+    font-size: 0.92rem;
+    padding: 2px 10px;
+  }
+  .btn-swing {
+    padding: 8px 14px;
+    font-size: 1.15rem;
+    max-width: 360px;
+  }
+  .growth-dashboard.comic-dashboard {
+    gap: 6px;
+  }
+  .growth-card.comic-metric-card {
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+  .growth-card-header {
+    font-size: 0.7rem;
+  }
+  .growth-main-val {
+    font-size: 1.15rem;
+    margin: 1px 0;
+  }
+  .growth-sub-val {
+    font-size: 0.65rem;
+  }
+  .growth-badge {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+  }
+}
+
