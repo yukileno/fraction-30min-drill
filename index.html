@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>熱血！分数1000本ノック 〜猛特訓編〜</title>
-  <link rel="stylesheet" href="css/style.css?v=20260926_2">
+  <link rel="stylesheet" href="css/style.css?v=20260926_3">
 </head>
 <body class="theme-nekketsu">
 
@@ -61,6 +61,36 @@
         <!-- 鬼監督のゲキ（セリフ吹き出し） -->
         <div class="coach-speech-bubble" id="coachBubble">
           「努力は裏切らない！！ 歯を食いしばってバットを振れ！！」
+        </div>
+
+        <!-- ⚾ 白熱！ピッチャー vs バッター対決ステージ -->
+        <div class="showdown-stage" id="showdownStage">
+          <!-- 左側：バッター（私） -->
+          <div class="stage-player-col stage-batter-col">
+            <div class="player-name-tag" id="batterNameTag">私（バッター）</div>
+            <div class="sprite-batter stance" id="spriteBatter"></div>
+            <div class="stage-base plate-home"></div>
+          </div>
+
+          <!-- 中央フィールド：投球ゾーン ＆ 火の玉ボール -->
+          <div class="stage-field-zone" id="stageFieldZone">
+            <div class="fireball-container hidden" id="fireballBall">
+              <!-- 火の玉炎エフェクト -->
+              <div class="fireball-glow"></div>
+              <div class="fireball-flame"></div>
+              <div class="fireball-core">⚾</div>
+              <div class="fireball-tail"></div>
+            </div>
+            <!-- 審判のコール（ストライク！ ヒット！等） -->
+            <div class="umpire-call" id="umpireCall"></div>
+          </div>
+
+          <!-- 右側：ピッチャー（相手投手） -->
+          <div class="stage-player-col stage-pitcher-col">
+            <div class="player-name-tag">ライバル投手</div>
+            <div class="sprite-pitcher set" id="spritePitcher"></div>
+            <div class="stage-base mound"></div>
+          </div>
         </div>
 
         <div class="card comic-card">
@@ -311,12 +341,16 @@
     </div>
   </div>
 
+  <!-- 効果音（直接ファイル参照プリロード） -->
+  <audio id="audioHit" src="sound/hit.mp3" preload="auto"></audio>
+  <audio id="audioHomerun" src="sound/homerun.mp3" preload="auto"></audio>
+
   <!-- スクリプト読み込み（assets.jsを先頭に配置） -->
   <script src="js/assets.js?v=20260926_2"></script>
   <script src="js/fraction.js?v=20260926_2"></script>
   <script src="js/tracker.js?v=20260926_2"></script>
   <script src="js/auth.js?v=20260926_2"></script>
   <script src="js/sync.js?v=20260926_2"></script>
-  <script src="js/app.js?v=20260926_2"></script>
+  <script src="js/app.js?v=20260926_3"></script>
 </body>
 </html>

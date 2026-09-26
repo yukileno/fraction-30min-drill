@@ -7,7 +7,7 @@
   const SheetSync = window.SheetSync;
   const AuthManager = window.AuthManager;
 
-  // 熱血効果音プレイヤー (Base64オーディオ ＆ Web Audio API)
+  // 熱血効果音プレイヤー (オーディオファイル ＆ Web Audio API)
   class SoundPlayer {
     constructor() {
       this.hitAudio = null;
@@ -16,13 +16,22 @@
     }
 
     initAudios() {
-      if (window.ASSETS) {
-        if (window.ASSETS.HIT_SOUND) {
-          this.hitAudio = new Audio(window.ASSETS.HIT_SOUND);
-        }
-        if (window.ASSETS.HOMERUN_SOUND) {
-          this.homerunAudio = new Audio(window.ASSETS.HOMERUN_SOUND);
-        }
+      // 1. HTML埋め込みの audio タグがあればそれを取得
+      const elHit = document.getElementById('audioHit');
+      const elHomerun = document.getElementById('audioHomerun');
+      if (elHit) this.hitAudio = elHit;
+      if (elHomerun) this.homerunAudio = elHomerun;
+
+      // 2. なければ sound/ ディレクトリから直に生成
+      if (!this.hitAudio) {
+        try {
+          this.hitAudio = new Audio('sound/hit.mp3');
+        } catch (e) {}
+      }
+      if (!this.homerunAudio) {
+        try {
+          this.homerunAudio = new Audio('sound/homerun.mp3');
+        } catch (e) {}
       }
     }
 
@@ -30,7 +39,8 @@
       try {
         if (this.hitAudio) {
           this.hitAudio.currentTime = 0;
-          this.hitAudio.play().catch(() => {});
+          const p = this.hitAudio.play();
+          if (p && p.catch) p.catch(() => this.playSynthHit());
         } else {
           this.playSynthHit();
         }
@@ -43,12 +53,65 @@
       try {
         if (this.homerunAudio) {
           this.homerunAudio.currentTime = 0;
-          this.homerunAudio.play().catch(() => {});
+          const p = this.homerunAudio.play();
+          if (p && p.catch) p.catch(() => this.playHit());
         } else {
           this.playHit();
         }
       } catch (e) {
         this.playHit();
+      }
+    }
+
+    // 空振りの豪快スイング音（風切り音「ブンッ！」＋ミット捕球「バシッ！」）
+    playSwingMiss() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const bufferSize = Math.floor(ctx.sampleRate * 0.22);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(450, ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(1300, ctx.currentTime + 0.08);
+        filter.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.22);
+        filter.Q.value = 3;
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.45, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start();
+
+        // 0.2秒後にミット捕球音
+        setTimeout(() => {
+          try {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(140, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.07);
+            g.gain.setValueAtTime(0.35, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.07);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.07);
+          } catch (e) {}
+        }, 190);
+      } catch (e) {
+        this.playWrong();
       }
     }
 
@@ -92,6 +155,162 @@
     }
   }
 
+  // ⚾ ピッチャー vs バッター対決ステージ演出マネージャー
+  class BaseballShowdown {
+    constructor(soundPlayer) {
+      this.sound = soundPlayer;
+      this.pitcherEl = document.getElementById('spritePitcher');
+      this.batterEl = document.getElementById('spriteBatter');
+      this.fireballEl = document.getElementById('fireballBall');
+      this.umpireEl = document.getElementById('umpireCall');
+      this.batterNameTag = document.getElementById('batterNameTag');
+
+      this.pitchTimer = null;
+      this.swingTimer = null;
+      this.umpireTimer = null;
+      this.isWaitingForAnswer = false;
+    }
+
+    setBatterName(name) {
+      if (this.batterNameTag && name) {
+        this.batterNameTag.textContent = `${name}（私）`;
+      }
+    }
+
+    // 投球モーション開始（新問出題時）
+    pitch() {
+      if (!this.pitcherEl || !this.batterEl || !this.fireballEl) return;
+
+      // 前回のタイマーをクリア
+      clearTimeout(this.pitchTimer);
+      clearTimeout(this.swingTimer);
+      clearTimeout(this.umpireTimer);
+
+      // バッターは構え
+      this.setBatterMotion('stance');
+      this.hideUmpireCall();
+
+      // ピッチャー投球モーション
+      // 1. セットポジション
+      this.setPitcherMotion('set');
+      this.fireballEl.className = 'fireball-container hidden';
+
+      // 2. 足上げ（ワインドアップ）
+      setTimeout(() => {
+        this.setPitcherMotion('windup');
+      }, 120);
+
+      // 3. 踏み込み
+      setTimeout(() => {
+        this.setPitcherMotion('stride');
+      }, 250);
+
+      // 4. リリース（腕を振って火の玉発射！）
+      setTimeout(() => {
+        this.setPitcherMotion('release');
+        this.fireballEl.className = 'fireball-container pitching';
+      }, 380);
+
+      // 5. フォロースルー
+      setTimeout(() => {
+        this.setPitcherMotion('follow');
+      }, 500);
+
+      // 6. ボールがバッター手前へ到着 → ブルブル激震待機へ！
+      setTimeout(() => {
+        this.fireballEl.className = 'fireball-container waiting';
+        this.isWaitingForAnswer = true;
+      }, 800);
+    }
+
+    // 正解時：フルスイング快打！
+    swingHit(isHomerun = false) {
+      if (!this.batterEl || !this.fireballEl) return;
+      this.isWaitingForAnswer = false;
+      clearTimeout(this.swingTimer);
+
+      // バッター：テイクバック（タメ）
+      this.setBatterMotion('takeback');
+
+      // インパクト
+      this.swingTimer = setTimeout(() => {
+        this.setBatterMotion('impact');
+
+        // ボールがカキーンと右上へ飛ぶ！
+        this.fireballEl.className = isHomerun ? 'fireball-container homerun-fly' : 'fireball-container hit-fly';
+
+        // 審判コール
+        this.showUmpireCall(isHomerun ? 'HOMERUN!!' : 'HIT!!', isHomerun ? 'call-homerun' : 'call-hit');
+
+        // フォロースルー
+        setTimeout(() => {
+          this.setBatterMotion('follow');
+        }, 120);
+      }, 80);
+    }
+
+    // 不正解時：豪快に空振り三振！
+    swingMiss() {
+      if (!this.batterEl || !this.fireballEl) return;
+      this.isWaitingForAnswer = false;
+      clearTimeout(this.swingTimer);
+
+      // 空振り音を再生
+      if (this.sound && typeof this.sound.playSwingMiss === 'function') {
+        this.sound.playSwingMiss();
+      }
+
+      // バッター：始動
+      this.setBatterMotion('takeback');
+
+      // スイング＆空振り
+      this.swingTimer = setTimeout(() => {
+        this.setBatterMotion('impact');
+        // ボールが捕手ミットへ抜ける
+        this.fireballEl.className = 'fireball-container miss-pass';
+
+        setTimeout(() => {
+          // 豪快に体勢を崩して空振り！
+          this.setBatterMotion('miss');
+          this.showUmpireCall('STRIKE!!', 'call-strike');
+
+          // 少しして再び構えに戻り、ボールもバッター前で唸り直す
+          setTimeout(() => {
+            this.setBatterMotion('stance');
+            this.fireballEl.className = 'fireball-container waiting';
+            this.hideUmpireCall();
+            this.isWaitingForAnswer = true;
+          }, 900);
+        }, 90);
+      }, 70);
+    }
+
+    setPitcherMotion(motion) {
+      if (!this.pitcherEl) return;
+      this.pitcherEl.className = `sprite-pitcher ${motion}`;
+    }
+
+    setBatterMotion(motion) {
+      if (!this.batterEl) return;
+      this.batterEl.className = `sprite-batter ${motion}`;
+    }
+
+    showUmpireCall(text, className) {
+      if (!this.umpireEl) return;
+      clearTimeout(this.umpireTimer);
+      this.umpireEl.textContent = text;
+      this.umpireEl.className = `umpire-call show ${className}`;
+      this.umpireTimer = setTimeout(() => {
+        this.hideUmpireCall();
+      }, 1400);
+    }
+
+    hideUmpireCall() {
+      if (!this.umpireEl) return;
+      this.umpireEl.classList.remove('show');
+    }
+  }
+
   class App {
     constructor() {
       this.sound = new SoundPlayer();
@@ -104,6 +323,9 @@
 
       this.selectedClass = '5年1組';
       this.selectedNumber = 1;
+
+      // 野球対決ステージ（ピッチャー vs バッター）マネージャー
+      this.showdown = new BaseballShowdown(this.sound);
 
       this.initElements();
       this.populateNumberSelect();
@@ -281,6 +503,7 @@
     onLoginComplete(user, isNew = false) {
       this.hideAuthModal();
       this.studentDisplayName.textContent = `⚾ 背番号${user.studentNumber}番 ${user.nickname} 選手`;
+      this.showdown.setBatterName(user.nickname);
       this.updateGrowthDashboard();
       this.nextProblem();
       this.tracker.start();
@@ -325,6 +548,11 @@
       this.resetInputs();
       this.clearFeedback();
       this.tracker.startNewProblem(this.currentProblem);
+
+      // ピッチャー投球モーション開始＆火の玉ボール飛来
+      if (this.showdown) {
+        this.showdown.pitch();
+      }
     }
 
     renderFormula(prob) {
@@ -431,6 +659,9 @@
 
           // 🌟 正解演出！「カキーン！！」快音 ＆ 画面揺れ ＆ 特大エフェクト
           this.triggerHitEffect(isFirstTry);
+          if (this.showdown) {
+            this.showdown.swingHit(isFirstTry);
+          }
 
           // 監督の熱血台詞
           if (isFirstTry) {
@@ -462,9 +693,13 @@
           }, 1100);
 
         } else {
-          // 不正解演出
+          // 不正解演出（豪快な空振り三振）
           this.comboCount = 0;
-          this.sound.playWrong();
+          if (this.showdown) {
+            this.showdown.swingMiss();
+          } else {
+            this.sound.playWrong();
+          }
           this.tracker.recordMistake(userAnswerDisplay, result.message);
 
           const scolds = [

@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 100" width="500" height="100">
+  <defs>
+    <linearGradient id="helmetRed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+    <linearGradient id="batterUniform" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="batWood" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="50%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="skinB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#fba761"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ================= コマ1: 構え（ピッチャーを睨み据える） (0 - 100) ================= -->
+  <g transform="translate(0, 0)">
+    <!-- ホームベース＆影 -->
+    <ellipse cx="48" cy="94" rx="20" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 右足（後ろ足） -->
+    <path d="M40 64 L38 88 L30 88" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="28" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 左足（前足） -->
+    <path d="M52 64 L54 88 L62 88" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="54" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- ズボン -->
+    <path d="M34 52 L58 52 L54 66 L36 66 Z" fill="url(#batterUniform)" stroke="#0f172a" stroke-width="2.5"/>
+    <!-- 胴体（ピッチャーに正対気味に構える） -->
+    <path d="M36 30 L56 30 L54 54 L36 54 Z" fill="url(#batterUniform)" stroke="#0f172a" stroke-width="2.5"/>
+    <text x="46" y="46" font-size="9" font-family="'Impact',sans-serif" font-weight="900" fill="#2563eb" text-anchor="middle">5</text>
+    <!-- 頭＆ヘルメット -->
+    <circle cx="48" cy="20" r="10" fill="url(#skinB)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M38 18 C38 9 58 9 58 18 Z" fill="url(#helmetRed)" stroke="#0f172a" stroke-width="2"/>
+    <!-- つば（右向き） -->
+    <path d="M48 17 L62 17 L58 20 Z" fill="#7f1d1d"/>
+    <!-- 耳あて -->
+    <rect x="42" y="18" width="6" height="7" rx="2" fill="#991b1b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 両腕＆バット（右肩の上に立てて構える） -->
+    <path d="M42 34 L36 28 L38 22" stroke="#0f172a" stroke-width="3" fill="none"/>
+    <path d="M50 34 L40 28 L40 22" stroke="#0f172a" stroke-width="3" fill="none"/>
+    <!-- バット（木製） -->
+    <path d="M38 24 L28 -2 L34 -4 L42 22 Z" fill="url(#batWood)" stroke="#0f172a" stroke-width="2"/>
+    <rect x="37" y="21" width="5" height="5" rx="1.5" fill="#f59e0b" stroke="#0f172a" stroke-width="1.5"/>
+  </g>
+
+  <!-- ================= コマ2: テイクバック（足を上げてタメる！） (100 - 200) ================= -->
+  <g transform="translate(100, 0)">
+    <ellipse cx="45" cy="94" rx="16" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 軸足・右足（体重を乗せる） -->
+    <path d="M38 64 L36 90 L28 90" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <rect x="26" y="88" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 軽く上げた前足・左足 -->
+    <path d="M50 62 L56 74 L60 70" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="58" y="68" width="10" height="4" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 胴体（後ろに深く引く） -->
+    <path d="M32 30 L52 30 L50 54 L32 54 Z" fill="url(#batterUniform)" stroke="#0f172a" stroke-width="2.5"/>
+    <!-- 頭 -->
+    <circle cx="44" cy="20" r="10" fill="url(#skinB)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M34 18 C34 9 54 9 54 18 Z" fill="url(#helmetRed)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M44 17 L58 17 L54 20 Z" fill="#7f1d1d"/>
+    <!-- バット（背中深くへテイクバック！） -->
+    <path d="M32 24 L16 0 L22 -2 L36 22 Z" fill="url(#batWood)" stroke="#0f172a" stroke-width="2"/>
+    <rect x="31" y="21" width="5" height="5" rx="1.5" fill="#f59e0b" stroke="#0f172a" stroke-width="1.5"/>
+  </g>
+
+  <!-- ================= コマ3: インパクト！（会心のフルスイング！） (200 - 300) ================= -->
+  <g transform="translate(200, 0)">
+    <ellipse cx="52" cy="94" rx="26" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 踏み込んだ左足 -->
+    <path d="M56 64 L68 88 L78 88" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <rect x="70" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 回転した右足（つま先立ち） -->
+    <path d="M38 64 L34 86 L32 90" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <circle cx="33" cy="89" r="2.5" fill="#1e293b"/>
+    <!-- 腰・胴体（強烈な回転！） -->
+    <path d="M36 34 L58 34 L54 58 L36 58 Z" fill="url(#batterUniform)" stroke="#0f172a" stroke-width="2.5"/>
+    <circle cx="48" cy="22" r="10" fill="url(#skinB)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M38 20 C38 11 58 11 58 20 Z" fill="url(#helmetRed)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 前方に力強く振り抜かれたバット（水平インパクト！） -->
+    <path d="M46 36 L78 40 L98 42 L98 36 L78 35 Z" fill="url(#batWood)" stroke="#0f172a" stroke-width="2.5"/>
+    <circle cx="48" cy="36" r="4" fill="#f59e0b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- スイング衝撃波！ -->
+    <path d="M74 24 C86 28 92 40 90 54" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M78 20 C94 26 100 42 96 60" stroke="#ef4444" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- ================= コマ4: フォロースルー！（大飛球を見送る！） (300 - 400) ================= -->
+  <g transform="translate(300, 0)">
+    <ellipse cx="50" cy="94" rx="24" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 踏ん張る前足 -->
+    <path d="M54 64 L66 88 L76 88" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <rect x="68" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 後ろ足（完全に回り切る） -->
+    <path d="M38 64 L36 84 L38 88" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <!-- 胴体（胸を張って右斜め上を見上げる） -->
+    <path d="M40 32 L60 30 L56 56 L38 56 Z" fill="url(#batterUniform)" stroke="#0f172a" stroke-width="2.5"/>
+    <circle cx="50" cy="20" r="10" fill="url(#skinB)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M40 18 C40 9 60 9 60 18 Z" fill="url(#helmetRed)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 背中まで振り切ったバット（左肩の後ろへ！） -->
+    <path d="M42 32 L22 16 L18 10 L24 8 L46 28 Z" fill="url(#batWood)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 見上げる視線＆星の煌めき -->
+    <polygon points="68,10 70,14 74,16 70,18 68,22 66,18 62,16 66,14" fill="#fde047"/>
+  </g>
+
+  <!-- ================= コマ5: 空振り三振！（バランスを崩す） (400 - 500) ================= -->
+  <g transform="translate(400, 0)">
+    <ellipse cx="55" cy="94" rx="26" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- つんのめった前足 -->
+    <path d="M52 64 L70 86 L80 88" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="72" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 崩れた後ろ足（膝をつきそう） -->
+    <path d="M38 64 L34 76 L26 84" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="22" y="82" width="10" height="4" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 胴体（前のめり） -->
+    <path d="M42 38 L62 40 L56 64 L38 62 Z" fill="url(#batterUniform)" stroke="#0f172a" stroke-width="2.5"/>
+    <!-- 頭（うつむき加減） -->
+    <circle cx="56" cy="28" r="10" fill="url(#skinB)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M46 26 C46 17 66 17 66 26 Z" fill="url(#helmetRed)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 空を切ったバット（下方にだらり） -->
+    <path d="M50 44 L66 60 L78 72 L74 74 L60 62 Z" fill="url(#batWood)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 空振り風切り線（ブォンッ！） -->
+    <path d="M82 24 C90 32 94 48 88 64" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="4,3" stroke-linecap="round" fill="none"/>
+    <path d="M88 20 C98 30 102 50 96 68" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

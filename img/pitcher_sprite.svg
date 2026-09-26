@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 100" width="500" height="100">
+  <defs>
+    <!-- 影とグラデーション -->
+    <linearGradient id="pitcherCap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="pitcherShirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#fdba74"/>
+    </linearGradient>
+    <filter id="comicShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1.5" dy="1.5" stdDeviation="0" flood-color="#0f172a"/>
+    </filter>
+  </defs>
+
+  <!-- ================= コマ1: セットポジション (0 - 100) ================= -->
+  <g transform="translate(0, 0)">
+    <!-- 影 -->
+    <ellipse cx="50" cy="94" rx="20" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 右足（軸足） -->
+    <path d="M47 62 L48 90 L56 90" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="46" y="88" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 左足（前足） -->
+    <path d="M43 62 L39 88 L31 88" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="29" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- ズボン -->
+    <path d="M38 60 L44 86 L48 86 L53 60 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <path d="M35 50 L55 50 L53 62 L37 62 Z" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/>
+    <!-- 胴体 -->
+    <path d="M35 28 L55 28 L53 52 L37 52 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <text x="45" y="44" font-size="10" font-family="'Impact',sans-serif" font-weight="900" fill="#dc2626" text-anchor="middle">1</text>
+    <!-- 頭・顔 -->
+    <circle cx="45" cy="20" r="10" fill="url(#skin)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 帽子 -->
+    <path d="M35 18 C35 11 55 11 55 18 Z" fill="url(#pitcherCap)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M33 17 L44 17 L42 20 Z" fill="#0f172a"/>
+    <!-- 左腕＆グローブ（胸の前） -->
+    <path d="M37 32 L30 40 L38 42" stroke="#0f172a" stroke-width="3" fill="none"/>
+    <circle cx="38" cy="40" r="6" fill="#b45309" stroke="#0f172a" stroke-width="2"/>
+    <!-- 右手（グローブに添える） -->
+    <circle cx="40" cy="40" r="3.5" fill="url(#skin)" stroke="#0f172a" stroke-width="1.5"/>
+  </g>
+
+  <!-- ================= コマ2: ワインドアップ・足上げ (100 - 200) ================= -->
+  <g transform="translate(100, 0)">
+    <!-- 影 -->
+    <ellipse cx="55" cy="94" rx="14" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 軸足（右足） -->
+    <path d="M52 62 L54 90 L62 90" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="52" y="88" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 上げた左足（高々とキック！） -->
+    <path d="M42 58 L32 46 L30 64" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="25" y="62" width="10" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- ズボン -->
+    <path d="M40 50 L58 50 L56 64 L42 62 Z" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/>
+    <!-- 胴体（少し後方に反る） -->
+    <path d="M42 28 L60 30 L56 52 L42 50 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <text x="50" y="44" font-size="10" font-family="'Impact',sans-serif" font-weight="900" fill="#dc2626" text-anchor="middle">1</text>
+    <!-- 頭 -->
+    <circle cx="50" cy="19" r="10" fill="url(#skin)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M40 17 C40 10 60 10 60 17 Z" fill="url(#pitcherCap)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M38 16 L49 16 L47 19 Z" fill="#0f172a"/>
+    <!-- グローブ（胸元で抱え込む） -->
+    <circle cx="44" cy="38" r="6" fill="#b45309" stroke="#0f172a" stroke-width="2"/>
+    <!-- 右腕（背中側に大きく引く！） -->
+    <path d="M58 32 L72 38 L76 30" stroke="#0f172a" stroke-width="3" fill="none"/>
+    <circle cx="76" cy="30" r="3.5" fill="url(#skin)" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 集中気迫エフェクト -->
+    <path d="M22 42 L16 38 M24 50 L18 52" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- ================= コマ3: 踏み込み＆しなり (200 - 300) ================= -->
+  <g transform="translate(200, 0)">
+    <!-- 影（前後に広がる） -->
+    <ellipse cx="45" cy="94" rx="26" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 後ろ足（右足・蹴り出し） -->
+    <path d="M58 64 L74 84 L82 86" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="76" y="84" width="10" height="4" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 踏み込んだ前足（左足・大きく前へ！） -->
+    <path d="M40 64 L22 84 L14 88" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <rect x="12" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- ズボン（開脚） -->
+    <path d="M36 56 L64 58 L54 68 L26 66 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <!-- 胴体（グッと前に倒れ込む） -->
+    <path d="M34 32 L56 34 L52 56 L34 54 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <text x="44" y="47" font-size="9" font-family="'Impact',sans-serif" font-weight="900" fill="#dc2626" text-anchor="middle">1</text>
+    <!-- 頭 -->
+    <circle cx="36" cy="22" r="10" fill="url(#skin)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M26 20 C26 13 46 13 46 20 Z" fill="url(#pitcherCap)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M24 19 L35 19 L33 22 Z" fill="#0f172a"/>
+    <!-- グローブ（前方に突き出して壁を作る） -->
+    <path d="M34 36 L18 42" stroke="#0f172a" stroke-width="3" fill="none"/>
+    <circle cx="16" cy="42" r="6" fill="#b45309" stroke="#0f172a" stroke-width="2"/>
+    <!-- 右腕（強烈にしなる！頭の後ろで最大トルク） -->
+    <path d="M52 34 L66 22 L62 12" stroke="#0f172a" stroke-width="3.5" fill="none"/>
+    <!-- ボール（まだ手の中） -->
+    <circle cx="62" cy="10" r="4.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+  </g>
+
+  <!-- ================= コマ4: ボールリリース！ (300 - 400) ================= -->
+  <g transform="translate(300, 0)">
+    <!-- 影 -->
+    <ellipse cx="42" cy="94" rx="24" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 軸足・左足 -->
+    <path d="M36 64 L20 86 L12 88" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <rect x="10" y="86" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 蹴り上げた右足 -->
+    <path d="M52 62 L68 70 L78 62" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="76" y="60" width="10" height="4" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 胴体（前方に深く倒れ込む） -->
+    <path d="M26 38 L48 40 L44 64 L26 62 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <!-- 頭 -->
+    <circle cx="28" cy="26" r="10" fill="url(#skin)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M18 24 C18 17 38 17 38 24 Z" fill="url(#pitcherCap)" stroke="#0f172a" stroke-width="2"/>
+    <!-- グローブ（胸元に引き込む） -->
+    <circle cx="34" cy="46" r="6" fill="#b45309" stroke="#0f172a" stroke-width="2"/>
+    <!-- 右腕（前方に強烈に振り抜く！） -->
+    <path d="M42 40 L26 34 L8 38" stroke="#0f172a" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <!-- 指先からの炎スパーク！ -->
+    <path d="M6 38 L-4 34 M4 34 L-6 40 M6 42 L-2 46" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- ================= コマ5: フォロースルー (400 - 500) ================= -->
+  <g transform="translate(400, 0)">
+    <!-- 影 -->
+    <ellipse cx="40" cy="94" rx="22" ry="4" fill="rgba(15,23,42,0.2)"/>
+    <!-- 左足 -->
+    <path d="M38 66 L30 88 L22 90" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="20" y="88" width="12" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 右足（振り切って前に着地寸前） -->
+    <path d="M48 64 L54 78 L60 84" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <rect x="58" y="82" width="10" height="5" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- 胴体（深く頭を下げて振り切る） -->
+    <path d="M30 46 L50 48 L44 68 L28 66 Z" fill="url(#pitcherShirt)" stroke="#0f172a" stroke-width="2.5"/>
+    <circle cx="28" cy="34" r="10" fill="url(#skin)" stroke="#0f172a" stroke-width="2"/>
+    <path d="M18 32 C18 25 38 25 38 32 Z" fill="url(#pitcherCap)" stroke="#0f172a" stroke-width="2"/>
+    <!-- 振り切った右腕（左足の横へ） -->
+    <path d="M42 48 L32 58 L20 68" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <circle cx="20" cy="68" r="3.5" fill="url(#skin)" stroke="#0f172a" stroke-width="1.5"/>
+  </g>
+</svg>

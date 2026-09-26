@@ -1087,3 +1087,448 @@ canvas#scratchCanvas {
   }
 }
 
+/* ========================================================
+   ⚾ 白熱！ピッチャー vs バッター対決ステージ
+   ======================================================== */
+.showdown-stage {
+  width: 100%;
+  height: 104px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(30, 41, 59, 0.9) 60%, rgba(67, 35, 12, 0.9) 100%);
+  border: 3px solid #0f172a;
+  border-radius: 12px;
+  box-shadow: var(--shadow-comic), inset 0 0 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 4px 16px 2px 16px;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* グラウンドの白線＆夜間照明演出 */
+.showdown-stage::before {
+  content: '';
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+/* プレイヤー列（バッター・ピッチャー） */
+.stage-player-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.player-name-tag {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #f8fafc;
+  background: #0f172a;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #f59e0b;
+  box-shadow: 1px 1px 0 #000;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* ベース・マウンド */
+.stage-base {
+  position: absolute;
+  bottom: 0;
+  pointer-events: none;
+}
+.plate-home {
+  width: 24px;
+  height: 6px;
+  background: #f8fafc;
+  border: 1px solid #0f172a;
+  border-radius: 2px;
+  bottom: 1px;
+}
+.mound {
+  width: 44px;
+  height: 7px;
+  background: #78350f;
+  border: 1px solid #451a03;
+  border-radius: 50% 50% 0 0;
+  bottom: 0;
+}
+
+/* ========================================================
+   スプライトアニメーション表示（幅80px × 高さ80px）
+   ======================================================== */
+.sprite-pitcher {
+  width: 80px;
+  height: 80px;
+  background-image: url('../img/pitcher_sprite.svg');
+  background-size: 400px 80px;
+  background-repeat: no-repeat;
+  transition: transform 0.05s ease;
+}
+
+/* ピッチャーのモーション（コマ） */
+.sprite-pitcher.set { background-position: 0px 0; }
+.sprite-pitcher.windup { background-position: -80px 0; }
+.sprite-pitcher.stride { background-position: -160px 0; }
+.sprite-pitcher.release { background-position: -240px 0; }
+.sprite-pitcher.follow { background-position: -320px 0; }
+
+.sprite-batter {
+  width: 80px;
+  height: 80px;
+  background-image: url('../img/batter_sprite.svg');
+  background-size: 400px 80px;
+  background-repeat: no-repeat;
+  transition: transform 0.05s ease;
+}
+
+/* バッターのモーション（コマ） */
+.sprite-batter.stance { background-position: 0px 0; }
+.sprite-batter.takeback { background-position: -80px 0; }
+.sprite-batter.impact { background-position: -160px 0; }
+.sprite-batter.follow { background-position: -240px 0; }
+.sprite-batter.miss { background-position: -320px 0; }
+
+/* ========================================================
+   中央フィールド＆火の玉ボール
+   ======================================================== */
+.stage-field-zone {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  overflow: visible;
+  margin: 0 10px;
+}
+
+/* 火の玉ボール本体 */
+.fireball-container {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  top: 34px;
+  pointer-events: none;
+  z-index: 10;
+  transition: none;
+}
+
+.fireball-container.hidden {
+  display: none !important;
+}
+
+/* 炎オーラ・発光 */
+.fireball-glow {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 69, 0, 0.85) 0%, rgba(255, 140, 0, 0.5) 45%, transparent 70%);
+  animation: fireballPulse 0.3s infinite alternate ease-in-out;
+}
+
+.fireball-flame {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, #fde047 0%, #ea580c 50%, #dc2626 80%, transparent 100%);
+  border-radius: 50%;
+  opacity: 0.85;
+  filter: blur(2px);
+  animation: fireballSpin 0.5s linear infinite;
+}
+
+.fireball-core {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  font-size: 22px;
+  line-height: 32px;
+  text-align: center;
+  filter: drop-shadow(0 0 6px #ffedd5) drop-shadow(0 0 12px #ea580c);
+  animation: ballRotate 0.2s linear infinite;
+}
+
+/* ボールの尾（炎トレイル） */
+.fireball-tail {
+  position: absolute;
+  right: -24px;
+  top: 8px;
+  width: 28px;
+  height: 16px;
+  background: linear-gradient(90deg, rgba(234, 88, 12, 0.8), rgba(220, 38, 38, 0.4), transparent);
+  border-radius: 50% 0 0 50%;
+  filter: blur(3px);
+}
+
+@keyframes fireballPulse {
+  0% { transform: scale(0.92); opacity: 0.7; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes fireballSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes ballRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+/* 投球中：右（ピッチャー手元）から左（バッター手前）へ飛来 */
+.fireball-container.pitching {
+  display: block;
+  animation: fireballPitchAnim 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes fireballPitchAnim {
+  0% {
+    left: calc(100% - 20px);
+    top: 30px;
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  75% {
+    left: 40px;
+    top: 36px;
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    left: 24px;
+    top: 34px;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 🔥 待機中：バッターの目前で「ブルブルブルブル」と激しく激震しながら解答待機！ */
+.fireball-container.waiting {
+  display: block;
+  left: 24px;
+  top: 34px;
+  animation: fireballBuzz 0.08s infinite linear, fireballFlicker 0.16s infinite alternate;
+}
+
+@keyframes fireballBuzz {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  15% { transform: translate(-3px, 2px) scale(1.08) rotate(-4deg); }
+  30% { transform: translate(3px, -2px) scale(0.95) rotate(4deg); }
+  45% { transform: translate(-2px, -3px) scale(1.06) rotate(-2deg); }
+  60% { transform: translate(3px, 2px) scale(0.98) rotate(3deg); }
+  75% { transform: translate(-3px, -1px) scale(1.07) rotate(-3deg); }
+  90% { transform: translate(2px, -2px) scale(0.96) rotate(2deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+@keyframes fireballFlicker {
+  0% { filter: drop-shadow(0 0 8px #f97316) drop-shadow(0 0 16px #dc2626); }
+  100% { filter: drop-shadow(0 0 14px #fbbf24) drop-shadow(0 0 24px #ea580c); }
+}
+
+/* 💥 ヒット快打：バットで打ち返され、右上彼方へカキーンと飛んでいく！ */
+.fireball-container.hit-fly {
+  display: block;
+  animation: ballHitFlyAnim 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.1) forwards;
+}
+
+@keyframes ballHitFlyAnim {
+  0% {
+    left: 24px;
+    top: 34px;
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  30% {
+    left: 45%;
+    top: -30px;
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  70% {
+    left: 85%;
+    top: -80px;
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    left: 125%;
+    top: -140px;
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* 🌟 特大ホームラン：超弾道で夜空高く消え去る！ */
+.fireball-container.homerun-fly {
+  display: block;
+  animation: ballHomerunFlyAnim 0.9s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes ballHomerunFlyAnim {
+  0% {
+    left: 24px;
+    top: 34px;
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  35% {
+    left: 50%;
+    top: -50px;
+    transform: scale(1.6);
+    opacity: 1;
+  }
+  100% {
+    left: 115%;
+    top: -180px;
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* ❌ 空振りストライク：ボールがそのままキャッチャーミットへ抜ける！ */
+.fireball-container.miss-pass {
+  display: block;
+  animation: ballMissPassAnim 0.35s ease-in forwards;
+}
+
+@keyframes ballMissPassAnim {
+  0% {
+    left: 24px;
+    top: 34px;
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    left: -25px;
+    top: 38px;
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+/* 審判コールバッジ（中央に劇画風ポップアップ） */
+.umpire-call {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  padding: 4px 14px;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  color: #fff;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 15;
+  white-space: nowrap;
+  opacity: 0;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+}
+
+.umpire-call.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.umpire-call.call-strike {
+  background: #dc2626;
+  border: 3px solid #7f1d1d;
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.8), 3px 3px 0 #000;
+  color: #fef08a;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.umpire-call.call-hit {
+  background: #ea580c;
+  border: 3px solid #9a3412;
+  box-shadow: 0 0 15px rgba(234, 88, 12, 0.8), 3px 3px 0 #000;
+  color: #ffffff;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.umpire-call.call-homerun {
+  background: linear-gradient(135deg, #f59e0b, #dc2626);
+  border: 3px solid #78350f;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.9), 3px 3px 0 #000;
+  color: #ffffff;
+  text-shadow: 2px 2px 0 #000;
+  animation: callGlow 0.3s infinite alternate;
+}
+
+@keyframes callGlow {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* ========================================================
+   Chromebook等 画面高760px以下における完全1画面収容調整
+   ======================================================== */
+@media (max-height: 760px) {
+  .showdown-stage {
+    height: 82px;
+    padding: 0 10px 1px 10px;
+  }
+  .player-name-tag {
+    font-size: 0.62rem;
+    padding: 1px 6px;
+    margin-bottom: 1px;
+    line-height: 1.2;
+  }
+  .sprite-pitcher, .sprite-batter {
+    width: 62px;
+    height: 62px;
+    background-size: 310px 62px;
+  }
+  .sprite-pitcher.set { background-position: 0px 0; }
+  .sprite-pitcher.windup { background-position: -62px 0; }
+  .sprite-pitcher.stride { background-position: -124px 0; }
+  .sprite-pitcher.release { background-position: -186px 0; }
+  .sprite-pitcher.follow { background-position: -248px 0; }
+
+  .sprite-batter.stance { background-position: 0px 0; }
+  .sprite-batter.takeback { background-position: -62px 0; }
+  .sprite-batter.impact { background-position: -124px 0; }
+  .sprite-batter.follow { background-position: -186px 0; }
+  .sprite-batter.miss { background-position: -248px 0; }
+
+  .fireball-container {
+    width: 24px;
+    height: 24px;
+    top: 26px;
+  }
+  .fireball-flame {
+    width: 28px;
+    height: 28px;
+  }
+  .fireball-core {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .fireball-container.waiting {
+    left: 20px;
+    top: 26px;
+  }
+  .umpire-call {
+    font-size: 1.2rem;
+    padding: 2px 10px;
+  }
+}
+
