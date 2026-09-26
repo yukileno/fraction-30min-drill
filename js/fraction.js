@@ -249,7 +249,32 @@
     return buildProblemData(f1, f2, '+', false, 999);
   }
 
-  function checkAnswer(input, problemData) {
+  function checkAnswer(inputOrProblem, problemOrWhole, numArg, denArg) {
+    let input = {};
+    let problemData = null;
+
+    if (inputOrProblem && inputOrProblem.answer) {
+      // パターンB: checkAnswer(problemData, whole, num, den)
+      problemData = inputOrProblem;
+      input = {
+        whole: problemOrWhole,
+        num: numArg,
+        den: denArg
+      };
+    } else {
+      // パターンA: checkAnswer({ whole, num, den }, problemData)
+      input = inputOrProblem || {};
+      problemData = problemOrWhole;
+    }
+
+    if (!problemData || !problemData.answer) {
+      return {
+        isCorrect: false,
+        status: 'error',
+        message: '問題データの照合エラー'
+      };
+    }
+
     const inWhole = Number(input.whole) || 0;
     const inNum = Number(input.num) || 0;
     const inDen = Number(input.den) || 1;

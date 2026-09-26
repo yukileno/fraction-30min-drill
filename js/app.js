@@ -241,7 +241,7 @@
 
     async loadRemoteUsers() {
       try {
-        const users = await this.sync.fetchUsersFromSheet(4000);
+        const users = await this.sync.fetchUsersFromSheet(12000);
         if (users && users.length > 0) {
           this.auth.syncWithRemoteUsers(users);
         }
@@ -395,81 +395,97 @@
     }
 
     checkAnswerNow() {
-      if (!this.currentProblem) return;
+      try {
+        if (!this.currentProblem) return;
 
-      const wholeStr = this.inputWhole.value.trim();
-      const numStr = this.inputNum.value.trim();
-      const denStr = this.inputDen.value.trim();
+        const wholeStr = this.inputWhole.value.trim();
+        const numStr = this.inputNum.value.trim();
+        const denStr = this.inputDen.value.trim();
 
-      if (!wholeStr && !numStr && !denStr) {
-        this.showFeedback('warning', 'バットを振れ！答えを入力するんだ！');
-        this.setActiveInput(this.inputWhole);
-        return;
-      }
-
-      const result = checkAnswer(this.currentProblem, wholeStr, numStr, denStr);
-
-      if (result.isCorrect) {
-        const isFirstTry = this.tracker.currentProblemMistakes === 0;
-        this.tracker.recordSolve(this.currentProblem, result.userAnswerDisplay);
-
-        // 連続ヒットカウント
-        this.comboCount++;
-        this.pitchCount++;
-
-        // 🌟 正解演出！「カキーン！！」快音 ＆ 画面揺れ ＆ 特大エフェクト
-        this.triggerHitEffect(isFirstTry);
-
-        // 監督の熱血台詞
-        if (isFirstTry) {
-          const praises = [
-            '「うむ！会心の当たりだ！！カキーン！！」',
-            '「ナイスバッティング！努力は裏切らんぞ！！」',
-            '「スタンドイン！特大ホームランだ！！」',
-            '「完璧なスイングだ！その調子で行け！！」'
-          ];
-          this.setCoachSpeech(praises[Math.floor(Math.random() * praises.length)]);
-        } else {
-          this.setCoachSpeech('「粘って打ったな！泥臭く食らいつけ！！」');
+        if (!wholeStr && !numStr && !denStr) {
+          this.showFeedback('warning', 'バットを振れ！答えを入力するんだ！');
+          this.setActiveInput(this.inputWhole);
+          return;
         }
 
-        this.showFeedback('correct', `⚾ カキーン！！ 正解だ！！ (答え: ${result.correctDisplay})`);
-        this.updateGrowthDashboard();
+        const inputVal = {
+          whole: wholeStr,
+          num: numStr,
+          den: denStr
+        };
 
-        // 1000本達成判定
-        const user = this.auth.getCurrentUser();
-        const stats = this.tracker.getStatsComparison(user);
-        if (stats.knocks.done === 1000) {
-          setTimeout(() => {
-            this.goalModal.classList.add('active');
-          }, 800);
-        }
+        const result = checkAnswer(inputVal, this.currentProblem);
 
-        setTimeout(() => {
-          this.nextProblem();
-        }, 1100);
+        const userAnswerDisplay = wholeStr
+          ? (numStr ? `${wholeStr}と${numStr}/${denStr}` : wholeStr)
+          : (numStr ? `${numStr}/${denStr}` : '0');
+        const correctDisplay = this.currentProblem.correctAnswer || (this.currentProblem.answer ? this.formatAns(this.currentProblem.answer) : '');
 
-      } else {
-        // 不正解演出
-        this.comboCount = 0;
-        this.sound.playWrong();
-        this.tracker.recordMistake(`${wholeStr} ${numStr}/${denStr}`, result.message);
+        if (result.isCorrect) {
+          const isFirstTry = this.tracker.currentProblemMistakes === 0;
+          this.tracker.recordSolve(this.currentProblem, userAnswerDisplay);
 
-        const scolds = [
-          '「バカモン！！まだ腰が入っとらん！！もう一丁！！」',
-          '「ボール球に手を出すな！通分をしっかり見極めろ！！」',
-          '「歯を食いしばれ！気合で食らいつくんだ！！」'
-        ];
-        this.setCoachSpeech(scolds[Math.floor(Math.random() * scolds.length)]);
-        this.showFeedback('wrong', `💥 空振り三振！ ${result.message}`);
+          // 連続ヒットカウント
+          this.comboCount++;
+          this.pitchCount++;
 
-        if (result.canRetry) {
-          if (!this.inputNum.value && !this.inputDen.value) {
-            this.setActiveInput(this.inputWhole);
+          // 🌟 正解演出！「カキーン！！」快音 ＆ 画面揺れ ＆ 特大エフェクト
+          this.triggerHitEffect(isFirstTry);
+
+          // 監督の熱血台詞
+          if (isFirstTry) {
+            const praises = [
+              '「うむ！会心の当たりだ！！カキーン！！」',
+              '「ナイスバッティング！努力は裏切らんぞ！！」',
+              '「スタンドイン！特大ホームランだ！！」',
+              '「完璧なスイングだ！その調子で行け！！」'
+            ];
+            this.setCoachSpeech(praises[Math.floor(Math.random() * praises.length)]);
           } else {
-            this.setActiveInput(this.inputNum);
+            this.setCoachSpeech('「粘って打ったな！泥臭く食らいつけ！！」');
+          }
+
+          this.showFeedback('correct', `⚾ カキーン！！ 正解だ！！ (答え: ${correctDisplay})`);
+          this.updateGrowthDashboard();
+
+          // 1000本達成判定
+          const user = this.auth.getCurrentUser();
+          const stats = this.tracker.getStatsComparison(user);
+          if (stats && stats.knocks && stats.knocks.done === 1000) {
+            setTimeout(() => {
+              this.goalModal.classList.add('active');
+            }, 800);
+          }
+
+          setTimeout(() => {
+            this.nextProblem();
+          }, 1100);
+
+        } else {
+          // 不正解演出
+          this.comboCount = 0;
+          this.sound.playWrong();
+          this.tracker.recordMistake(userAnswerDisplay, result.message);
+
+          const scolds = [
+            '「バカモン！！まだ腰が入っとらん！！もう一丁！！」',
+            '「ボール球に手を出すな！通分をしっかり見極めろ！！」',
+            '「歯を食いしばれ！気合で食らいつくんだ！！」'
+          ];
+          this.setCoachSpeech(scolds[Math.floor(Math.random() * scolds.length)]);
+          this.showFeedback('wrong', `💥 空振り三振！ ${result.message}`);
+
+          if (result.status !== 'correct') {
+            if (!this.inputNum.value && !this.inputDen.value) {
+              this.setActiveInput(this.inputWhole);
+            } else {
+              this.setActiveInput(this.inputNum);
+            }
           }
         }
+      } catch (err) {
+        console.error('解答判定エラー:', err);
+        this.showFeedback('warning', 'エラーが発生したぞ！もう一度Enterを押せ！');
       }
     }
 
@@ -581,8 +597,8 @@
         let check = this.auth.checkStudent(this.selectedClass, this.selectedNumber);
 
         try {
-          // 既知なら1.5秒、未登録判定時は3.8秒待ってGASから確実に名簿を取得
-          const timeout = check.exists ? 1500 : 3800;
+          // 既知なら3秒、未登録時は混雑時も安心の最大12秒待ってGASから最新名簿を確実に取得
+          const timeout = check.exists ? 3000 : 12000;
           const users = await this.sync.fetchUsersFromSheet(timeout);
           if (users && users.length > 0) {
             this.auth.syncWithRemoteUsers(users);

@@ -173,8 +173,8 @@
       }
     }
 
-    // 📖 スプレッドシートから全児童の名簿データを読み込む（最大2.5秒タイムアウト保証でフリーズ防止）
-    async fetchUsersFromSheet(timeoutMs = 2500) {
+    // 📖 スプレッドシートから全児童の名簿データを読み込む（混雑時も安心の最大12秒タイムアウト保証）
+    async fetchUsersFromSheet(timeoutMs = 12000) {
       if (!this.gasUrl) return [];
       try {
         const controller = new AbortController();
