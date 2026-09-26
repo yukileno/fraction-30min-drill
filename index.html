@@ -8,14 +8,8 @@
 </head>
 <body class="theme-nekketsu">
 
-  <!-- 16:9 アスペクト比完全準拠コンテナ -->
+  <!-- 16:9 アスペクト比完全準拠コンテナ（全面 watanabekyojin 背景） -->
   <div class="app-viewport" id="appViewport">
-
-    <!-- 漫画集中線エフェクトレイヤー -->
-    <div class="speed-lines-overlay" id="speedLines"></div>
-
-    <!-- 巨人の星 鬼監督 ど迫力背景レイヤー -->
-    <div class="kyojin-bg-huge" id="kyojinBgHuge"></div>
 
     <!-- カキーン！特大劇画エフェクトレイヤー -->
     <div class="hit-effect-overlay" id="hitEffectOverlay">
@@ -160,15 +154,9 @@
 
       <!-- 右側: 鬼監督ベンチ ＆ 作戦板（通分用紙） -->
       <aside class="side-panel bench-panel">
-        <!-- 鬼監督エリア -->
-        <div class="coach-card">
-          <div class="coach-img-wrap">
-            <img src="" alt="熱血鬼監督" id="coachImg" class="coach-img">
-            <div class="coach-flame-anim"></div>
-          </div>
-          <div class="coach-speech-bubble" id="coachBubble">
-            「努力は裏切らない！！ 歯を食いしばってバットを振れ！！」
-          </div>
+        <!-- 鬼監督セリフエリア -->
+        <div class="coach-speech-bubble" id="coachBubble">
+          「努力は裏切らない！！ 歯を食いしばってバットを振れ！！」
         </div>
 
         <!-- 作戦板（スコアブック・通分用紙） -->
@@ -189,66 +177,90 @@
     </main>
   </div> <!-- /.app-viewport -->
 
-  <!-- 入部届（巨人の計算 ログイン）モーダル -->
-  <div class="modal-overlay auth-modal-overlay active" id="authModal">
-    <div class="modal-card-kyojin" id="authCardKyojin">
-      <!-- ⚾ 巨人の計算 ⚾ -->
-      <div class="kyojin-card-header">
-        <div class="kyojin-header-title-row">
-          <span class="kyojin-ball-icon">⚾</span>
-          <h2 class="kyojin-main-title">巨人の計算</h2>
-          <span class="kyojin-ball-icon">⚾</span>
-        </div>
-        <div class="kyojin-subtitle">〜 血と汗と涙の1000本ノック 〜</div>
-        <div class="kyojin-divider"></div>
+  <!-- 入部届（クラス・背番号選択）モーダル -->
+  <div class="modal-overlay auth-modal-overlay" id="authModal">
+    <div class="modal-content comic-modal" style="max-width: 440px;">
+      <div class="modal-comic-header">
+        <div class="modal-icon">⚾</div>
+        <h2>熱血！入部届</h2>
+        <p>クラスと背番号（出席番号）を名乗れ！</p>
       </div>
 
-      <div class="kyojin-card-body">
-        <p class="kyojin-guide-text">自らの背番号と合言葉を刻め！</p>
-
-        <!-- ▼ 所属（組・番号） -->
-        <div class="kyojin-section">
-          <label class="kyojin-section-label">▼ 所属（組・番号）</label>
-          <div class="kyojin-row-classnum">
-            <select class="kyojin-box-select" id="authClass">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
+      <!-- ステップ1: クラスと出席番号の選択 -->
+      <div id="authStepSelect">
+        <div class="auth-form-row">
+          <div class="auth-form-col">
+            <label class="auth-form-label">所属クラス</label>
+            <select class="auth-select" id="authClass">
+              <option value="5年1組">5年1組</option>
+              <option value="5年2組">5年2組</option>
+              <option value="5年3組">5年3組</option>
+              <option value="5年4組">5年4組</option>
+              <option value="5年5組">5年5組</option>
+              <option value="5年6組">5年6組</option>
             </select>
-            <span class="kyojin-unit-text">組</span>
-            <select class="kyojin-box-select" id="authNumber">
-              <!-- JSで1〜45番 -->
+          </div>
+          <div class="auth-form-col">
+            <label class="auth-form-label">背番号（出席番号）</label>
+            <select class="auth-select" id="authNumber">
+              <!-- JSで1〜45番を生成 -->
             </select>
-            <span class="kyojin-unit-text">番</span>
           </div>
         </div>
 
-        <!-- ▼ 合言葉（パスワード） -->
-        <div class="kyojin-section">
-          <label class="kyojin-section-label">▼ 合言葉（パスワード）</label>
-          <div class="kyojin-row-pass">
-            <input type="password" class="kyojin-box-input" id="authPassword" placeholder="****" maxlength="8">
+        <button type="button" class="auth-submit-btn btn-comic" id="btnStepNext">次へ進む！ 👉</button>
+      </div>
+
+      <!-- ステップ2-A: 登録済み選手の確認画面 -->
+      <div id="authStepConfirm" style="display: none;">
+        <div class="confirm-name-box comic-confirm-box">
+          <div style="font-size: 1rem; color: #1e293b; font-weight: bold;">
+            <span id="confirmClassNum">5年1組 1番</span> 選手
+          </div>
+          <div class="confirm-nickname" id="confirmNickname">たろう</div>
+          <div style="font-size: 0.95rem; color: #b91c1c; font-weight: bold; margin-top: 6px;">
+            君だな！気合を入れてバッターボックスへ立て！！
           </div>
         </div>
 
-        <!-- 選手名バッジ / 新規登録エリア -->
-        <div class="kyojin-player-status" id="authPlayerStatus">
-          <span class="player-name-badge" id="authPlayerNameBadge">照合中...</span>
-          <div id="authNewPlayerBox" style="display: none; margin-top: 6px;">
-            <input type="text" class="kyojin-box-input name-input" id="inputNickname" placeholder="選手名（ニックネーム）を刻め！" maxlength="10">
-          </div>
-        </div>
+        <button type="button" class="auth-submit-btn btn-comic" id="btnStartConfirmed">
+          よし、特訓開始だ！！ 🚀
+        </button>
 
-        <!-- 赤い楕円の「試合開始！」ボタン -->
-        <div class="kyojin-btn-wrap">
-          <button type="button" class="btn-game-start" id="btnGameStart">
-            試合開始！
+        <div>
+          <button type="button" class="btn-link-sub" id="btnEditNickname">
+            名前を修正する / 別の選手
           </button>
         </div>
       </div>
+
+      <!-- ステップ2-B: 初回名前登録画面 -->
+      <div id="authStepRegister" style="display: none;">
+        <div class="confirm-name-box comic-confirm-box" style="background: #fff7ed; border-color: #f97316;">
+          <div style="font-size: 1rem; color: #c2410c; font-weight: bold;">
+            <span id="registerClassNum">5年1組 1番</span>
+          </div>
+          <div style="font-size: 0.95rem; color: #9a3412; font-weight: bold; margin-top: 4px;">
+            新入部員だな！登録名を叫べ！！
+          </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 16px;">
+          <label class="auth-form-label">登録名（選手名）</label>
+          <input type="text" class="auth-input" id="inputNickname" placeholder="例: たろう、さくら" maxlength="12" autofocus>
+        </div>
+
+        <button type="button" class="auth-submit-btn btn-comic" id="btnSaveNickname">
+          登録してバッターボックスへ！ 🚀
+        </button>
+
+        <div>
+          <button type="button" class="btn-link-sub" id="btnBackToSelect">
+            クラス・番号を選び直す
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
