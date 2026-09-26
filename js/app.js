@@ -220,12 +220,12 @@
     }
 
     initCoachImage() {
-      if (window.ASSETS && window.ASSETS.KYOJIN_IMG) {
-        const bgUrl = `url("${window.ASSETS.KYOJIN_IMG}")`;
-        document.body.style.backgroundImage = bgUrl;
-        if (this.appViewport) {
-          this.appViewport.style.backgroundImage = bgUrl;
-        }
+      const bgUrl = (window.ASSETS && window.ASSETS.KYOJIN_IMG)
+        ? `url("${window.ASSETS.KYOJIN_IMG}")`
+        : 'url("kyojin.jpg")';
+      document.body.style.backgroundImage = bgUrl;
+      if (this.appViewport) {
+        this.appViewport.style.backgroundImage = bgUrl;
       }
     }
 
@@ -728,6 +728,7 @@
 
     initScratchCanvas() {
       const canvas = document.getElementById('scratchCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const container = canvas.parentElement;
 
