@@ -503,6 +503,7 @@
     onLoginComplete(user, isNew = false) {
       this.hideAuthModal();
       this.studentDisplayName.textContent = `⚾ 背番号${user.studentNumber}番 ${user.nickname} 選手`;
+      this.tracker.setCurrentUser(user);
       this.showdown.setBatterName(user.nickname);
       this.updateGrowthDashboard();
       this.nextProblem();
@@ -651,7 +652,7 @@
 
         if (result.isCorrect) {
           const isFirstTry = this.tracker.currentProblemMistakes === 0;
-          this.tracker.recordSolve(this.currentProblem, userAnswerDisplay);
+          this.tracker.recordSolve(this.currentProblem, userAnswerDisplay, this.auth.getCurrentUser());
 
           // 連続ヒットカウント
           this.comboCount++;
@@ -1071,25 +1072,37 @@
     }
 
     renderLogTable() {
-      const logs = this.tracker.getTodayLogs(this.auth.getCurrentUser());
-      if (logs.length === 0) {
-        this.logTableBody.innerHTML = '<tr><td colspan="6" style="padding: 24px; color: #64748b;">本日の打撃記録はまだありません。バッターボックスへ立て！</td></tr>';
+      const user = this.auth.getCurrentUser();
+      let logs = this.tracker.getTodayLogs(user);
+      if (!logs || logs.length === 0) {
+        // 本日分が0件でも全打席記録があればフォールバック表示
+        const all = this.tracker.getAllLogs();
+        if (all && all.length > 0) {
+          logs = all;
+        }
+      }
+
+      if (!logs || logs.length === 0) {
+        this.logTableBody.innerHTML = '<tr><td colspan="6" style="padding: 24px; color: #64748b; text-align: center;">本日の打撃記録はまだありません。バッターボックスへ立ってフルスイングしよう！</td></tr>';
         return;
       }
 
       this.logTableBody.innerHTML = logs.slice().reverse().map(log => {
-        const timeStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const mistakeBadge = log.mistakeCount === 0
+        const timeStr = log.timestamp ? new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+        const mistakeBadge = (log.mistakeCount === 0)
           ? '<span style="color:#15803d; font-weight:bold;">1発クリーンヒット⚾</span>'
-          : `<span style="color:#b91c1c;">${log.mistakeCount}回ファウル</span>`;
+          : `<span style="color:#b91c1c; font-weight:bold;">${log.mistakeCount}回空振り</span>`;
+        const formulaStr = log.problem ? (log.problem.formula || '') : '';
+        const answerStr = log.problem ? (log.problem.correctAnswer || '') : '';
+        const categoryStr = log.problem ? (log.problem.category || '分数計算') : '分数計算';
         return `
           <tr>
             <td>${timeStr}</td>
-            <td style="font-weight: bold;">${log.problem.formula}</td>
-            <td>${log.problem.correctAnswer}</td>
-            <td>${log.timeSpentSeconds}秒</td>
+            <td style="font-weight: bold;">${formulaStr}</td>
+            <td>${answerStr}</td>
+            <td>${log.timeSpentSeconds || 0}秒</td>
             <td>${mistakeBadge}</td>
-            <td style="font-size: 0.8rem; color: #64748b;">${log.problem.category}</td>
+            <td style="font-size: 0.8rem; color: #64748b;">${categoryStr}</td>
           </tr>
         `;
       }).join('');

@@ -1,7 +1,9 @@
 # メディア・テスト原本スキャン画像等の除外（セキュリティルール遵守）
 *.png
+!img/*.png
 *.jpg
 !kyojin.jpg
+!img/*.jpg
 *.jpeg
 *.gif
 *.bmp

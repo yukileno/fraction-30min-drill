@@ -1167,39 +1167,68 @@ canvas#scratchCanvas {
 }
 
 /* ========================================================
-   スプライトアニメーション表示（幅80px × 高さ80px）
+   劇画調キャラクター表示（星飛雄馬風ピッチャー ＆ 天才ライバル打者）
    ======================================================== */
 .sprite-pitcher {
-  width: 80px;
-  height: 80px;
-  background-image: url('../img/pitcher_sprite.svg');
-  background-size: 400px 80px;
+  width: 86px;
+  height: 86px;
+  background-image: url('../img/pitcher_hyuma.png');
+  background-size: contain;
   background-repeat: no-repeat;
-  transition: transform 0.05s ease;
+  background-position: center bottom;
+  transform-origin: center bottom;
+  transition: transform 0.08s ease, filter 0.08s ease;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.95)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
 }
 
-/* ピッチャーのモーション（コマ） */
-.sprite-pitcher.set { background-position: 0px 0; }
-.sprite-pitcher.windup { background-position: -80px 0; }
-.sprite-pitcher.stride { background-position: -160px 0; }
-.sprite-pitcher.release { background-position: -240px 0; }
-.sprite-pitcher.follow { background-position: -320px 0; }
+/* ピッチャーの躍動モーション */
+.sprite-pitcher.set { transform: translateX(0) translateY(0) scale(1); }
+.sprite-pitcher.windup { transform: translateX(5px) translateY(-3px) scale(1.05) rotate(3deg); }
+.sprite-pitcher.stride { transform: translateX(-4px) translateY(2px) scale(1.03) rotate(-2deg); }
+.sprite-pitcher.release {
+  transform: translateX(-9px) translateY(1px) scale(1.1) rotate(-4deg);
+  filter: drop-shadow(0 0 8px #f59e0b) drop-shadow(0 0 4px #ffffff) drop-shadow(1px 2px 3px #000);
+}
+.sprite-pitcher.follow { transform: translateX(-5px) translateY(2px) scale(1.02); }
 
 .sprite-batter {
-  width: 80px;
-  height: 80px;
-  background-image: url('../img/batter_sprite.svg');
-  background-size: 400px 80px;
+  width: 86px;
+  height: 86px;
+  background-image: url('../img/batter_rival_stance.png');
+  background-size: contain;
   background-repeat: no-repeat;
-  transition: transform 0.05s ease;
+  background-position: center bottom;
+  transform-origin: center bottom;
+  transition: transform 0.08s ease, filter 0.08s ease;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.95)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
 }
 
-/* バッターのモーション（コマ） */
-.sprite-batter.stance { background-position: 0px 0; }
-.sprite-batter.takeback { background-position: -80px 0; }
-.sprite-batter.impact { background-position: -160px 0; }
-.sprite-batter.follow { background-position: -240px 0; }
-.sprite-batter.miss { background-position: -320px 0; }
+/* バッターのモーション（構え・タメ・フルスイング快打・空振り） */
+.sprite-batter.stance {
+  background-image: url('../img/batter_rival_stance.png');
+  transform: translateX(0) scale(1);
+}
+.sprite-batter.takeback {
+  background-image: url('../img/batter_rival_stance.png');
+  transform: translateX(-4px) translateY(-2px) scale(1.05) rotate(-3deg);
+}
+.sprite-batter.impact,
+.sprite-batter.follow {
+  background-image: url('../img/batter_rival_swing.png') !important;
+  transform: translateX(6px) translateY(-1px) scale(1.12) rotate(2deg);
+  filter: drop-shadow(0 0 10px #f59e0b) drop-shadow(0 0 5px #ffffff) drop-shadow(2px 2px 4px #000);
+}
+.sprite-batter.miss {
+  background-image: url('../img/batter_rival_stance.png');
+  animation: rivalMissAnim 0.6s ease-in-out forwards;
+}
+
+@keyframes rivalMissAnim {
+  0% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(10px) translateY(4px) rotate(8deg); }
+  50% { transform: translateX(6px) translateY(7px) rotate(13deg); opacity: 0.85; }
+  100% { transform: translateX(0) translateY(0) rotate(0deg); opacity: 1; }
+}
 
 /* ========================================================
    中央フィールド＆火の玉ボール
@@ -1491,21 +1520,9 @@ canvas#scratchCanvas {
     line-height: 1.2;
   }
   .sprite-pitcher, .sprite-batter {
-    width: 62px;
-    height: 62px;
-    background-size: 310px 62px;
+    width: 68px;
+    height: 68px;
   }
-  .sprite-pitcher.set { background-position: 0px 0; }
-  .sprite-pitcher.windup { background-position: -62px 0; }
-  .sprite-pitcher.stride { background-position: -124px 0; }
-  .sprite-pitcher.release { background-position: -186px 0; }
-  .sprite-pitcher.follow { background-position: -248px 0; }
-
-  .sprite-batter.stance { background-position: 0px 0; }
-  .sprite-batter.takeback { background-position: -62px 0; }
-  .sprite-batter.impact { background-position: -124px 0; }
-  .sprite-batter.follow { background-position: -186px 0; }
-  .sprite-batter.miss { background-position: -248px 0; }
 
   .fireball-container {
     width: 24px;

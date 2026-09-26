@@ -183,14 +183,22 @@
       });
     }
 
-    recordSolve(problemData, finalAnswer) {
+    setCurrentUser(user) {
+      this.currentUser = user;
+    }
+
+    recordSolve(problemData, finalAnswer, userInfo = null) {
       const now = Date.now();
       const actualSeconds = this.currentProblemActiveSeconds;
+      const user = userInfo || this.currentUser || {};
 
       const logEntry = {
         id: 'log_' + now + '_' + Math.random().toString(36).substring(2, 6),
         sessionId: this.sessionId,
         timestamp: new Date().toISOString(),
+        className: user.className || '',
+        studentNumber: user.studentNumber || '',
+        nickname: user.nickname || '',
         problem: {
           category: problemData.category,
           subCategory: problemData.subCategory,
@@ -230,20 +238,43 @@
       }
     }
 
+    normalizeClassName(name) {
+      if (!name) return '';
+      const m = String(name).match(/([1-6])(?:\s*組)?/);
+      return m ? `${m[1]}組` : String(name).trim();
+    }
+
     getTodayLogs(userInfo = null) {
+      const user = userInfo || this.currentUser;
       const today = new Date().toDateString();
       let logs = this.getAllLogs().filter(log => new Date(log.timestamp).toDateString() === today);
-      if (userInfo && userInfo.className && userInfo.studentNumber) {
-        logs = logs.filter(l => l.className === userInfo.className && Number(l.studentNumber) === Number(userInfo.studentNumber));
+      if (user && user.studentNumber) {
+        const targetClass = this.normalizeClassName(user.className);
+        const targetNum = Number(user.studentNumber);
+        logs = logs.filter(l => {
+          // 古い形式のログ（className/studentNumber未保存）は救済表示
+          if (!l.className && !l.studentNumber) return true;
+          const logClass = this.normalizeClassName(l.className);
+          const logNum = Number(l.studentNumber);
+          return (!targetClass || !logClass || logClass === targetClass) && logNum === targetNum;
+        });
       }
       return logs;
     }
 
     getPastLogs(userInfo = null) {
+      const user = userInfo || this.currentUser;
       const today = new Date().toDateString();
       let logs = this.getAllLogs().filter(log => new Date(log.timestamp).toDateString() !== today);
-      if (userInfo && userInfo.className && userInfo.studentNumber) {
-        logs = logs.filter(l => l.className === userInfo.className && Number(l.studentNumber) === Number(userInfo.studentNumber));
+      if (user && user.studentNumber) {
+        const targetClass = this.normalizeClassName(user.className);
+        const targetNum = Number(user.studentNumber);
+        logs = logs.filter(l => {
+          if (!l.className && !l.studentNumber) return true;
+          const logClass = this.normalizeClassName(l.className);
+          const logNum = Number(l.studentNumber);
+          return (!targetClass || !logClass || logClass === targetClass) && logNum === targetNum;
+        });
       }
       return logs;
     }
