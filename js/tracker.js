@@ -29,6 +29,7 @@
       this.isRunning = false;
       this.isIdle = false;
       this.isTabHidden = false;
+      this.isBlurred = false;
       this.idleTimerSeconds = 0;
       this.targetReachedFired = false;
 
@@ -102,17 +103,34 @@
 
     setupVisibilityListener() {
       if (typeof document === 'undefined') return;
+
+      // 他タブ閲覧・画面最小化などの不可視状態を検知してタイムストップ
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
           this.isTabHidden = true;
           this.pause('tab_hidden');
         } else {
           this.isTabHidden = false;
-          if (!this.isIdle) {
+          if (!this.isIdle && !this.isBlurred) {
             this.start();
           }
         }
       });
+
+      // 他ウィンドウや別アプリへのフォーカス離脱を検知してタイムストップ
+      if (typeof window !== 'undefined') {
+        window.addEventListener('blur', () => {
+          this.isBlurred = true;
+          this.pause('window_blur');
+        });
+
+        window.addEventListener('focus', () => {
+          this.isBlurred = false;
+          if (!this.isTabHidden && !this.isIdle) {
+            this.start();
+          }
+        });
+      }
     }
 
     start() {
@@ -120,7 +138,7 @@
       this.isRunning = true;
 
       this.intervalId = setInterval(() => {
-        if (this.isTabHidden || this.isIdle) return;
+        if (this.isTabHidden || this.isBlurred || this.isIdle) return;
 
         this.idleTimerSeconds++;
         if (this.idleTimerSeconds >= IDLE_LIMIT_SECONDS) {
@@ -153,15 +171,23 @@
 
     triggerIdle() {
       this.isIdle = true;
+      // 放置された直前の無操作時間（60秒）を実質解答時間・本日の集中時間から除外し、最後の操作時でタイムストップ
+      this.currentProblemActiveSeconds = Math.max(0, this.currentProblemActiveSeconds - IDLE_LIMIT_SECONDS);
+      this.activeSeconds = Math.max(0, this.activeSeconds - IDLE_LIMIT_SECONDS);
       this.pause('idle');
       this.onIdleStateChange(true);
+      // 正確なタイムストップ値を即座に通知
+      this.onTick({
+        activeSeconds: this.activeSeconds,
+        problemSeconds: this.currentProblemActiveSeconds
+      });
     }
 
     resumeFromIdle() {
       this.isIdle = false;
       this.idleTimerSeconds = 0;
       this.onIdleStateChange(false);
-      if (!this.isTabHidden) {
+      if (!this.isTabHidden && !this.isBlurred) {
         this.start();
       }
     }
