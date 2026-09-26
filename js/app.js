@@ -164,6 +164,7 @@
       this.fireballEl = document.getElementById('fireballBall');
       this.umpireEl = document.getElementById('umpireCall');
       this.batterNameTag = document.getElementById('batterNameTag');
+      this.pitcherNameTag = document.getElementById('pitcherNameTag');
 
       this.pitchTimer = null;
       this.swingTimer = null;
@@ -174,6 +175,12 @@
     setBatterName(name) {
       if (this.batterNameTag && name) {
         this.batterNameTag.textContent = `${name}（私）`;
+      }
+    }
+
+    setPitcherName(name) {
+      if (this.pitcherNameTag && name) {
+        this.pitcherNameTag.textContent = `${name} 投手`;
       }
     }
 
@@ -346,8 +353,14 @@
       this.initScratchCanvas();
       this.bindEvents();
 
-      // 毎回入部届（ログイン）を求める
-      this.showAuthModal();
+      // 毎回入部届（ログイン）を求める（URLに?test_userがあれば自動スキップ）
+      const urlParams = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search) : null;
+      if (urlParams && urlParams.get('test_user')) {
+        const dummyUser = { className: '5年1組', studentNumber: 1, nickname: 'テスト打者' };
+        this.onLoginComplete(dummyUser, false);
+      } else {
+        this.showAuthModal();
+      }
 
       // バックグラウンドでスプレッドシート名簿を先読み
       this.loadRemoteUsers();
@@ -379,6 +392,15 @@
       this.inputNum = document.getElementById('inputNum');
       this.inputDen = document.getElementById('inputDen');
       this.activeInputBox = this.inputWhole;
+
+      // 特訓テンキー要素
+      this.slotTabWhole = document.getElementById('slotTabWhole');
+      this.slotTabNum = document.getElementById('slotTabNum');
+      this.slotTabDen = document.getElementById('slotTabDen');
+      this.btnNumpadBs = document.getElementById('btnNumpadBs');
+      this.btnNumpadAc = document.getElementById('btnNumpadAc');
+      this.btnNumpadNextSlot = document.getElementById('btnNumpadNextSlot');
+      this.numpadBtns = document.querySelectorAll('.numpad-btn[data-num]');
 
       // ボタン
       this.btnCheck = document.getElementById('btnCheck');
@@ -477,15 +499,15 @@
       if (info.state === 'saving') {
         this.btnSync.classList.add('status-saving');
         this.btnSync.disabled = true;
-        this.btnSyncText.textContent = `⏳ 送信中...`;
+        this.btnSyncText.textContent = `⏳ 保存中...`;
       } else if (info.state === 'unsaved' || info.count > 0) {
         this.btnSync.classList.add('status-unsaved');
         this.btnSync.disabled = false;
-        this.btnSyncText.textContent = `⚾ スコア送信 (${info.count}球)`;
+        this.btnSyncText.textContent = `☁️ 今すぐ保存 (${info.count})`;
       } else {
         this.btnSync.classList.add('status-saved');
         this.btnSync.disabled = true;
-        this.btnSyncText.textContent = `✅ スコア保存済`;
+        this.btnSyncText.textContent = `✅ 保存済み`;
       }
     }
 
@@ -550,8 +572,23 @@
       this.clearFeedback();
       this.tracker.startNewProblem(this.currentProblem);
 
+      // 対戦相手投手を登録児童名簿（または名作ライバル投手陣）から毎回ランダム選出
+      const currentUser = this.auth.getCurrentUser();
+      const myName = currentUser ? currentUser.nickname : '';
+      const registered = (this.auth && typeof this.auth.getAllRegisteredNicknames === 'function')
+        ? this.auth.getAllRegisteredNicknames(myName)
+        : [];
+      let rivalPitcher = '';
+      if (registered && registered.length > 0) {
+        rivalPitcher = registered[Math.floor(Math.random() * registered.length)];
+      } else {
+        const defaultRivals = ['星飛雄馬', '花形満', '左門豊作', '伴宙太', '剛速球エース'];
+        rivalPitcher = defaultRivals[Math.floor(Math.random() * defaultRivals.length)];
+      }
+
       // ピッチャー投球モーション開始＆火の玉ボール飛来
       if (this.showdown) {
+        this.showdown.setPitcherName(rivalPitcher);
         this.showdown.pitch();
       }
     }
@@ -614,13 +651,65 @@
     }
 
     setActiveInput(box) {
-      [this.inputWhole, this.inputNum, this.inputDen].forEach(b => b.classList.remove('active-target'));
+      [this.inputWhole, this.inputNum, this.inputDen].forEach(b => {
+        if (b) b.classList.remove('active-target');
+      });
+      [this.slotTabWhole, this.slotTabNum, this.slotTabDen].forEach(t => {
+        if (t) t.classList.remove('active');
+      });
+
       if (box) {
         this.activeInputBox = box;
+        box.classList.add('active-target');
+
+        // 対応するスロットタブをハイライト
+        if (box === this.inputWhole && this.slotTabWhole) {
+          this.slotTabWhole.classList.add('active');
+        } else if (box === this.inputNum && this.slotTabNum) {
+          this.slotTabNum.classList.add('active');
+        } else if (box === this.inputDen && this.slotTabDen) {
+          this.slotTabDen.classList.add('active');
+        }
+
         if (typeof box.focus === 'function') {
-          box.focus();
+          try { box.focus(); } catch (e) {}
         }
       }
+    }
+
+    // つぎの枠へ移動（整数 ➡ 分子 ➡ 分母 ➡ 整数）
+    nextInputSlot() {
+      if (this.activeInputBox === this.inputWhole) {
+        this.setActiveInput(this.inputNum);
+      } else if (this.activeInputBox === this.inputNum) {
+        this.setActiveInput(this.inputDen);
+      } else {
+        this.setActiveInput(this.inputWhole);
+      }
+    }
+
+    // テンキーによる数字入力
+    inputNumpadDigit(digit) {
+      if (!this.activeInputBox) {
+        this.setActiveInput(this.inputWhole);
+      }
+      const box = this.activeInputBox;
+      const maxLen = Number(box.getAttribute('maxlength')) || 3;
+      if (box.value.length < maxLen) {
+        box.value += String(digit);
+      }
+    }
+
+    // 1文字消去（Backspace）
+    numpadBackspace() {
+      if (!this.activeInputBox) return;
+      this.activeInputBox.value = this.activeInputBox.value.slice(0, -1);
+    }
+
+    // 全消去（AC）
+    numpadClear() {
+      if (!this.activeInputBox) return;
+      this.activeInputBox.value = '';
     }
 
     checkAnswerNow() {
@@ -946,8 +1035,56 @@
         }
       });
 
+      // 特訓テンキー スロットタブ（直接選択）
+      if (this.slotTabWhole) this.slotTabWhole.addEventListener('click', () => this.setActiveInput(this.inputWhole));
+      if (this.slotTabNum) this.slotTabNum.addEventListener('click', () => this.setActiveInput(this.inputNum));
+      if (this.slotTabDen) this.slotTabDen.addEventListener('click', () => this.setActiveInput(this.inputDen));
+
+      // 特訓テンキー 数字キー（0-9）
+      if (this.numpadBtns) {
+        this.numpadBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const num = btn.getAttribute('data-num');
+            this.inputNumpadDigit(num);
+          });
+        });
+      }
+
+      // 特訓テンキー 1文字消去 ＆ ACクリア
+      if (this.btnNumpadBs) {
+        this.btnNumpadBs.addEventListener('click', () => this.numpadBackspace());
+      }
+      if (this.btnNumpadAc) {
+        this.btnNumpadAc.addEventListener('click', () => this.numpadClear());
+      }
+
+      // 特訓テンキー つぎの枠へ移動ボタン
+      if (this.btnNumpadNextSlot) {
+        this.btnNumpadNextSlot.addEventListener('click', () => this.nextInputSlot());
+      }
+
+      // グローバル物理キーボード操作（inputmode="none"でもPC等から入力可能に）
+      window.addEventListener('keydown', (e) => {
+        // モーダル表示中は無効
+        if (this.authModal && this.authModal.classList.contains('active')) return;
+        if (this.logModal && this.logModal.classList.contains('active')) return;
+        if (this.idleModal && this.idleModal.classList.contains('active')) return;
+        if (this.goalModal && this.goalModal.classList.contains('active')) return;
+
+        if (/^[0-9]$/.test(e.key)) {
+          this.inputNumpadDigit(e.key);
+        } else if (e.key === 'Backspace') {
+          this.numpadBackspace();
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          this.nextInputSlot();
+        }
+      });
+
       // フルスイングボタン
-      this.btnCheck.addEventListener('click', () => this.checkAnswerNow());
+      if (this.btnCheck) {
+        this.btnCheck.addEventListener('click', () => this.checkAnswerNow());
+      }
 
       // スコア保存ボタン
       this.btnSync.addEventListener('click', async () => {

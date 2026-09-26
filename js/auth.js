@@ -139,6 +139,24 @@
       return user;
     }
 
+    // 登録されている全児童のニックネーム一覧を取得（自分を除外可能）
+    getAllRegisteredNicknames(excludeNickname = '') {
+      const reg = this.getRegistry();
+      const names = [];
+      const exclude = String(excludeNickname || '').trim();
+
+      Object.keys(reg).forEach(key => {
+        const val = reg[key];
+        const nick = (typeof val === 'object' && val !== null ? val.nickname : val) || '';
+        const clean = String(nick).trim();
+        if (clean && clean !== exclude && !names.includes(clean)) {
+          names.push(clean);
+        }
+      });
+
+      return names;
+    }
+
     getCurrentUser() {
       return this.currentUser;
     }

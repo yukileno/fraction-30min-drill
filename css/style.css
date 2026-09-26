@@ -288,7 +288,7 @@ main.field-main {
 
 .batter-box {
   width: 100%;
-  max-width: 680px;
+  max-width: 860px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -1092,8 +1092,8 @@ canvas#scratchCanvas {
    ======================================================== */
 .showdown-stage {
   width: 100%;
-  height: 104px;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(30, 41, 59, 0.9) 60%, rgba(67, 35, 12, 0.9) 100%);
+  height: 124px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.92) 60%, rgba(67, 35, 12, 0.92) 100%);
   border: 3px solid #0f172a;
   border-radius: 12px;
   box-shadow: var(--shadow-comic), inset 0 0 15px rgba(0, 0, 0, 0.5);
@@ -1101,7 +1101,7 @@ canvas#scratchCanvas {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 4px 16px 2px 16px;
+  padding: 6px 16px 2px 16px;
   overflow: hidden;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -1130,17 +1130,18 @@ canvas#scratchCanvas {
 }
 
 .player-name-tag {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 900;
   color: #f8fafc;
-  background: #0f172a;
-  padding: 2px 8px;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 3px 10px;
   border-radius: 4px;
-  border: 1px solid #f59e0b;
-  box-shadow: 1px 1px 0 #000;
-  margin-bottom: 2px;
+  border: 1.5px solid #f59e0b;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  margin-bottom: 4px;
   letter-spacing: 0.5px;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 /* ベース・マウンド */
@@ -1508,20 +1509,23 @@ canvas#scratchCanvas {
 /* ========================================================
    Chromebook等 画面高760px以下における完全1画面収容調整
    ======================================================== */
+/* ========================================================
+   Chromebook等 画面高760px以下における完全1画面収容調整
+   ======================================================== */
 @media (max-height: 760px) {
   .showdown-stage {
-    height: 82px;
-    padding: 0 10px 1px 10px;
+    height: 106px;
+    padding: 2px 10px 1px 10px;
   }
   .player-name-tag {
-    font-size: 0.62rem;
-    padding: 1px 6px;
-    margin-bottom: 1px;
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    margin-bottom: 2px;
     line-height: 1.2;
   }
   .sprite-pitcher, .sprite-batter {
-    width: 68px;
-    height: 68px;
+    width: 72px;
+    height: 72px;
   }
 
   .fireball-container {
@@ -1548,4 +1552,194 @@ canvas#scratchCanvas {
     padding: 2px 10px;
   }
 }
+
+/* ========================================================
+   ⚾ 特訓テンキーパッド（タブレット・Chromebookタッチ対応）
+   ======================================================== */
+.comic-card-body {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.problem-main-pane {
+  flex: 1 1 54%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.problem-main-pane .formula-display.comic-formula {
+  margin-bottom: 4px;
+}
+
+/* 特訓テンキーエリア（右側） */
+.numpad-pane {
+  flex: 0 0 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 3px solid #0f172a;
+  border-radius: 12px;
+  padding: 8px 10px 8px 10px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 2px 2px 0 #0f172a;
+}
+
+/* 枠切り替えインジケータータブ */
+.slot-tabs-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slot-tabs-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.slot-tabs {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+
+.slot-tab-btn {
+  flex: 1;
+  padding: 5px 2px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  border: 2px solid #64748b;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.slot-tab-btn.active {
+  background: #f59e0b;
+  color: #0f172a;
+  border-color: #b45309;
+  box-shadow: 0 2px 0 #78350f;
+  transform: translateY(-1px);
+}
+
+/* テンキーグリッド */
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.numpad-btn {
+  height: 44px;
+  font-size: 1.45rem;
+  font-weight: 900;
+  border: 2px solid #0f172a;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #0f172a;
+  transition: all 0.06s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.numpad-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0f172a;
+  background: #e2e8f0;
+}
+
+.numpad-btn.action-key.key-bs {
+  font-size: 0.85rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #991b1b;
+  box-shadow: 0 3px 0 #7f1d1d;
+}
+
+.numpad-btn.action-key.key-bs:active {
+  background: #fecaca;
+}
+
+.numpad-btn.action-key.key-ac {
+  font-size: 0.95rem;
+  background: #f8fafc;
+  color: #475569;
+  border-color: #334155;
+  box-shadow: 0 3px 0 #1e293b;
+}
+
+.numpad-btn.action-key.key-ac:active {
+  background: #e2e8f0;
+}
+
+/* つぎの枠へ移動ボタン */
+.btn-next-slot {
+  width: 100%;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 900;
+  border: 2px solid #0f172a;
+  border-radius: 8px;
+  box-shadow: 0 3px 0 #0f172a;
+  cursor: pointer;
+  transition: all 0.06s;
+  touch-action: manipulation;
+}
+
+.btn-next-slot:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0f172a;
+  background: #1d4ed8;
+}
+
+.next-slot-sub {
+  font-size: 0.65rem;
+  opacity: 0.9;
+  font-weight: normal;
+  margin-top: 1px;
+}
+
+/* テンキー側 フルスイングボタン */
+.numpad-pane .btn-swing {
+  width: 100%;
+  max-width: none;
+  padding: 10px;
+  font-size: 1.15rem;
+}
+
+/* レスポンシブ: スマホ等の縦長画面 */
+@media (max-width: 768px) {
+  .comic-card-body {
+    flex-direction: column;
+  }
+  .numpad-pane {
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+}
+
 

@@ -290,9 +290,25 @@
     }
 
     if (ans.isInteger) {
+      // 整数として入力された場合（例: 1）
       if (inWhole === ans.whole && inNum === 0) {
         return { isCorrect: true, status: 'correct', message: '大正解！すばらしい！' };
       }
+
+      // ユーザー要望対応: 答えが1のときに 1/1 とした場合（分母1の仮分数）も正解とする
+      if (inWhole === 0 && inNum === ans.whole && inDen === 1) {
+        return {
+          isCorrect: true,
+          status: 'correct',
+          message: `大正解！すばらしい！✨（整数の ${ans.whole} でも正解だよ）`
+        };
+      }
+
+      // 整数＋分母1（例: 1と0/1）
+      if (inWhole === ans.whole && inNum === 0 && inDen === 1) {
+        return { isCorrect: true, status: 'correct', message: '大正解！すばらしい！' };
+      }
+
       const inTotal = inWhole * inDen + inNum;
       if (inTotal === ans.whole * inDen && inDen > 1) {
         return {

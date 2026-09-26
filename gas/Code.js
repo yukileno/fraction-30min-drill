@@ -10,11 +10,18 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('📐 分数ドリル管理')
+    .addItem('🛠️ 「計算ドリル記録」のヘッダー＆正解日付化バグを一括修復', 'menuFixLogSheet')
     .addItem('⚡ 「児童名簿」に自動計算式を一括設定（高速化・推奨）', 'applyUserSheetFormulas')
     .addItem('👥 「児童名簿」の累計実績を全再集計', 'recalculateAllUserSummaries')
     .addItem('📊 「日別集計」シートを再構築', 'setupDailySummarySheet')
     .addItem('📈 「研究用_学習曲線」シートを再構築', 'setupResearchSheet')
     .addToUi();
+}
+
+function menuFixLogSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var res = fixLogSheetData(ss);
+  SpreadsheetApp.getUi().alert('「計算ドリル記録」シートの修復が完了しました！\n\nヘッダーを正しい12項目に更新し、日付化していた正解データを ' + res.fixedCount + ' 件修復しました。');
 }
 
 function doPost(e) {
@@ -38,14 +45,14 @@ function doPost(e) {
           log.className || '',                               // B: クラス
           log.studentNumber ? Number(log.studentNumber) : '', // C: 出席番号
           log.nickname || log.studentName || '児童',           // D: ニックネーム
-          log.formula || '',                                 // E: 問題式
+          "'" + (log.formula || ''),                         // E: 問題式 (日付自動変換防止)
           log.op || '',                                      // F: 演算
           log.category || '',                                // G: 単元分類
-          log.correctAnswer || '',                           // H: 正解
+          "'" + (log.correctAnswer || ''),                   // H: 正解 (7/8等が日付になるのを完全防止)
           log.timeSpentSeconds || 0,                         // I: 所要時間(秒)
           log.mistakeCount || 0,                             // J: 間違えた回数
           log.sessionId || '',                               // K: セッションID
-          dateStr                                            // L: 日付 (YYYY-MM-DD)
+          "'" + dateStr                                      // L: 日付 (YYYY-MM-DD)
         ]);
       }
 
@@ -200,6 +207,47 @@ function doGet(e) {
           totalMistakes: totalMistakes,
           accuracy: solvedCount > 0 ? Math.round((firstTryCount / solvedCount) * 100) : 100
         }
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 3. スプレッドシート内部の全シート検証（デバッグ・調査用）
+    if (action === 'inspect_sheets') {
+      var sheets = ss.getSheets();
+      var result = [];
+      for (var s = 0; s < sheets.length; s++) {
+        var sh = sheets[s];
+        var sName = sh.getName();
+        var numRows = sh.getLastRow();
+        var numCols = sh.getLastColumn();
+        var sampleRows = [];
+        if (numRows > 0 && numCols > 0) {
+          var startR = Math.max(1, numRows - 10);
+          var countR = numRows - startR + 1;
+          sampleRows = sh.getRange(startR, 1, countR, Math.min(15, numCols)).getValues();
+        }
+        var headers = (numRows > 0 && numCols > 0) ? sh.getRange(1, 1, 1, Math.min(15, numCols)).getValues()[0] : [];
+        result.push({
+          sheetName: sName,
+          lastRow: numRows,
+          lastColumn: numCols,
+          headers: headers,
+          sampleRows: sampleRows
+        });
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        sheets: result
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 4. 「計算ドリル記録」シートのヘッダー＆正解日付化バグの一括修復
+    if (action === 'fix_sheets') {
+      var fixRes = fixLogSheetData(ss);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: '計算ドリル記録シートのヘッダーと正解データを修復しました。',
+        fixedCount: fixRes.fixedCount,
+        totalRows: fixRes.totalRows
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -483,17 +531,92 @@ function recalculateAllUserSummaries() {
 function getOrCreateLogSheet(ss) {
   var sheetName = '計算ドリル記録';
   var sheet = ss.getSheetByName(sheetName);
+  var headers = [
+    '記録日時', 'クラス', '出席番号', 'ニックネーム',
+    '問題式', '演算', '単元分類', '正解',
+    '所要時間(秒)', '間違えた回数', 'セッションID', '日付(検索用)'
+  ];
+
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
-    sheet.appendRow([
-      '記録日時', 'クラス', '出席番号', 'ニックネーム',
-      '問題式', '演算', '単元分類', '正解',
-      '所要時間(秒)', '間違えた回数', 'セッションID', '日付(検索用)'
-    ]);
-    sheet.getRange(1, 1, 1, 12).setBackground('#2563eb').setFontColor('#ffffff').setFontWeight('bold');
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, 12).setBackground('#1e40af').setFontColor('#ffffff').setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  } else {
+    // 既存シートのヘッダーが古いまたはずれている場合は最新12項目に上書き修復
+    sheet.getRange(1, 1, 1, 12).setValues([headers]);
+    sheet.getRange(1, 1, 1, 12).setBackground('#1e40af').setFontColor('#ffffff').setFontWeight('bold');
     sheet.setFrozenRows(1);
   }
+
+  // E列(問題式)、H列(正解)、L列(日付)をプレーンテキスト書式に設定して日付誤爆を防止
+  sheet.getRange('E:E').setNumberFormat('@');
+  sheet.getRange('H:H').setNumberFormat('@');
+  sheet.getRange('L:L').setNumberFormat('@');
+
   return sheet;
+}
+
+/**
+ * 🛠️ 「計算ドリル記録」シートの全データ修復
+ * - ヘッダーを正しい12項目に更新
+ * - 日付型に勝手に誤変換されてしまった正解データを元の分数文字列に復元
+ * - 列幅の自動調整
+ */
+function fixLogSheetData(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getOrCreateLogSheet(ss);
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return { fixedCount: 0, totalRows: 0 };
+
+  var dataRange = sheet.getRange(2, 1, lastRow - 1, 12);
+  var values = dataRange.getValues();
+  var fixedCount = 0;
+
+  for (var r = 0; r < values.length; r++) {
+    var row = values[r];
+    var ans = row[7]; // H列 (index 7: 正解)
+    var formula = String(row[4] || ''); // E列: 問題式
+    var dt = row[0]; // A列: 記録日時
+
+    // 1. 正解がDate型またはISO文字列になってしまっている場合の復元
+    if (ans instanceof Date || (typeof ans === 'string' && ans.indexOf('T') !== -1 && ans.indexOf('-') !== -1)) {
+      var dObj = (ans instanceof Date) ? ans : new Date(ans);
+      if (!isNaN(dObj.getTime())) {
+        var m = dObj.getMonth() + 1; // 1-12
+        var d = dObj.getDate();      // 1-31
+        // スプレッドシートは 7/8 を 7月8日、1/2 を 1月2日として保存した
+        row[7] = "'" + m + "/" + d;
+        fixedCount++;
+      }
+    } else if (ans !== '') {
+      row[7] = "'" + String(ans).trim();
+    }
+
+    // 2. 問題式もテキスト保証
+    if (formula !== '') {
+      row[4] = "'" + formula.trim();
+    }
+
+    // 3. 日付(L列)の正確な日本時間文字列化
+    if (dt) {
+      try {
+        var dDate = (dt instanceof Date) ? dt : new Date(dt);
+        row[11] = "'" + Utilities.formatDate(dDate, 'Asia/Tokyo', 'yyyy-MM-dd');
+      } catch(e) {}
+    }
+  }
+
+  // 書式をプレーンテキストにして一括書き戻し
+  sheet.getRange('E:E').setNumberFormat('@');
+  sheet.getRange('H:H').setNumberFormat('@');
+  sheet.getRange('L:L').setNumberFormat('@');
+  dataRange.setValues(values);
+
+  // 見栄えの最適化（列幅自動調整）
+  sheet.autoResizeColumns(1, 12);
+
+  return { fixedCount: fixedCount, totalRows: values.length };
 }
 
 function getOrCreateUserSheet(ss) {
